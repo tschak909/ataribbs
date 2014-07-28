@@ -4,6 +4,6 @@
 
 #ifndef GLOBALS_H
 #define GLOBALS_H
-extern PrinterFlags config_printflags;
-extern SerialPortFlags config_serialportflags;
+extern PrinterFlags *config_printflags;
+extern SerialPortFlags *config_serialportflags;
 #endif /* GLOBALS_H */

@@ -31,7 +31,9 @@ typedef union
   unsigned int serial_port_flags;
 } SerialPortFlags;
 
+int config_init();
 int config_save();
 int config_load();
+void config_done();
 
 #endif /* CONFIG_H */

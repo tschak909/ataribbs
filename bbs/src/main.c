@@ -3,8 +3,8 @@
 #include "init.h"
 #include "done.h"
 
-PrinterFlags config_printflags;
-SerialPortFlags config_serialportflags; 
+PrinterFlags *config_printflags = NULL;
+SerialPortFlags *config_serialportflags = NULL; 
 
 /**
  * The run() loop. This is run after init() finishes.

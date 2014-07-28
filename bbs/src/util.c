@@ -6,6 +6,7 @@
 #include "config.h"
 #include "globals.h"
 #include <stdio.h>
+#include <stdlib.h>
 
 #define LOG_FORMAT "%s - %s - %s\n"
 #define LOG_FILE "D1:SYSTEM.LOG"
@@ -21,6 +22,7 @@ char logfile_error = 0;
 void fatal_error(const char* msg)
 {
   printf("FATAL ERROR: %s",msg);
+  exit(1);
 }
 
 /**
@@ -32,8 +34,8 @@ void log(char level, const char* msg)
 {
   FILE *printer;
   FILE *logFile;
-  if (config_printflags.pfbits.printer_use == 1 && 
-      config_printflags.pfbits.printer_log == 1 && 
+  if (config_printflags->pfbits.printer_use == 1 && 
+      config_printflags->pfbits.printer_log == 1 && 
       printer_error == 0)
     {
       printer = fopen("P:","a");

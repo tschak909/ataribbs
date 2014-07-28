@@ -4,6 +4,7 @@
 
 #include "util.h"
 #include "config.h"
+#include "globals.h"
 #include <stdio.h>
 
 #define LOG_FORMAT "%s - %s - %s\n"
@@ -11,8 +12,6 @@
 
 char printer_error = 0;
 char logfile_error = 0;
-
-extern PrinterFlags config_printflags;
 
 /**
  * A fatal error has occurred.

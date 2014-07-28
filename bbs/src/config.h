@@ -18,6 +18,19 @@ typedef union
   unsigned int printer_flags;
 } PrinterFlags;
 
+typedef union
+{
+  struct
+  {
+    unsigned int serial_port_baud : 5;
+    unsigned int serial_port_data_bits : 2;
+    unsigned int serial_port_stop_bits : 1;
+    unsigned int serial_port_parity : 3;
+    unsigned int serial_handshake_mode : 2;
+  } scbits;
+  unsigned int serial_port_flags;
+} SerialPortFlags;
+
 int config_save();
 int config_load();
 

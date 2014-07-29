@@ -15,8 +15,8 @@
 #include <time.h>
 
 #define DRIVERNAME "D1:ATRRDEV.SER"
-#define MODEM_RESET_STRING "ATZ\r"
-#define MODEM_RESET_RESPONSE "OK\r\n"
+#define MODEM_RESET_STRING "\rATZ\r"
+#define MODEM_RESET_RESPONSE "\r\nOK\r\n"
 #define TERMINAL_TIMEOUT_SEC 5;
 
 int terminal_init()
@@ -24,7 +24,7 @@ int terminal_init()
   unsigned char res;
   struct ser_params params;
 
-  params.baudrate = SER_BAUD_1200;
+  params.baudrate = SER_BAUD_9600;
   params.databits = config_serialportflags->scbits.serial_port_data_bits;
   params.stopbits = config_serialportflags->scbits.serial_port_stop_bits;
   params.parity = config_serialportflags->scbits.serial_port_parity;
@@ -90,7 +90,7 @@ int terminal_sanity_check()
   return terminal_send_and_expect_response(MODEM_RESET_STRING,MODEM_RESET_RESPONSE);
 }
 
-unsigned char terminal_send(const char* sendString)
+unsigned char terminal_send(const char* sendString, char willEcho)
 {
   unsigned char res;
   int i;
@@ -109,6 +109,14 @@ unsigned char terminal_send(const char* sendString)
 	  sprintf(cErr,"Could not send to modem: Generic Error - 0x%x",res);
 	  return 1;
 	}
+      if (willEcho == 1)
+	{
+	  char c;
+	  while (ser_get(&c) == SER_ERR_NO_DATA) 
+	    {
+	      
+	    }
+	}
       // Output to screen, let's see if I want to keep this here.
       putchar(sendString[i]);
     }
@@ -122,7 +130,7 @@ unsigned char terminal_send_and_expect_response(const char* sendString,const cha
 
   strcpy(cResp,'\0'); // Initialize response string.
 
-  if (terminal_send(sendString) != 0)
+  if (terminal_send(sendString,1) != 0)
     {
       char cErr[64];
       sprintf(cErr,"Could not send string to modem: %s",sendString);

@@ -10,7 +10,7 @@ int terminal_done();
 int terminal_driver_open();
 int terminal_sanity_check();
 
-char terminal_send(const char* sendString);
+char terminal_send(const char* sendString, char willEcho);
 char terminal_send_and_expect_response(const char* sendString, const char* recvString);
 
 #endif

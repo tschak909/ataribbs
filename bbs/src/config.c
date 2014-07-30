@@ -8,6 +8,7 @@
 #include <serial.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #define CONFIG_TEST 1
 
@@ -25,15 +26,26 @@ int config_init()
       return 1;
     }
 
+  if (!(config_modemstrings = malloc(sizeof(ModemStrings))))
+    {
+      fatal_error("Could not allocate memory for modem strings.");
+      return 1;
+    }
+
 }
 
 void config_done()
 {
+
   if (config_printflags)
     free(config_printflags);
 
   if (config_serialportflags)
     free(config_serialportflags);
+
+  if (config_modemstrings)
+    free(config_modemstrings);
+
 }
 
 int config_save()
@@ -53,6 +65,8 @@ int config_save()
   config_serialportflags->scbits.serial_port_parity = SER_PAR_NONE;
   config_serialportflags->scbits.serial_handshake_mode = SER_HS_HW;
 
+  strcpy(config_modemstrings->init_string,"ATE1V1S0=1S7=45\r");
+
 #endif
   pFile = fopen(FILE_BBS_CONFIG,"w+");
   /**
@@ -71,6 +85,11 @@ int config_save()
   if (fwrite((unsigned int *)config_serialportflags->serial_port_flags,sizeof(unsigned int),1,pFile) != 1)
     {
       fatal_error("Could not write serial port flags to " FILE_BBS_CONFIG " - Disk full? ");
+      return 1;
+    }
+  if (fwrite((ModemStrings *)config_modemstrings,sizeof(ModemStrings),1,pFile) != 1)
+    {
+      fatal_error("Could not write modem strings to " FILE_BBS_CONFIG " - Disk full? ");
       return 1;
     }
   fclose(pFile);
@@ -97,6 +116,11 @@ int config_load()
       fatal_error("Could not read serial port values from config file. File may be truncated");
       return 1;
     }
+  if (fread((ModemStrings *)config_modemstrings,sizeof(ModemStrings),1,pFile) < 1)
+    {
+      fatal_error("Could not read modem strings from config file. File may be truncated");
+      return 1;
+    }
 
 #ifdef CONFIG_TEST
   printf("Configuration values:\n");
@@ -109,6 +133,8 @@ int config_load()
   printf("Serial port: Data Bits 0x%x\n",config_serialportflags->scbits.serial_port_data_bits);
   printf("Serial port: Parity: 0x%x\n",config_serialportflags->scbits.serial_port_parity);
   printf("Serial port: Handshake mode: 0x%x\n",config_serialportflags->scbits.serial_handshake_mode);
+  printf("\n\n");
+  printf("Modem Strings: Initialization String %s",config_modemstrings->init_string);
   printf("\n\n");
 #endif CONFIG_TEST
 

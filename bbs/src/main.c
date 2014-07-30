@@ -5,6 +5,7 @@
 
 PrinterFlags *config_printflags = NULL;
 SerialPortFlags *config_serialportflags = NULL; 
+ModemStrings *config_modemstrings = NULL;
 
 /**
  * The run() loop. This is run after init() finishes.

@@ -11,6 +11,7 @@
 #define LOG_LEVEL_CRITICAL 3
 #define LOG_LEVEL_EMERGENCY 4
 
+void putasciichar(char c);
 void fatal_error(const char* msg);
 void log(char level, const char* msg);
 const char* _log_level(char level);

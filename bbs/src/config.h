@@ -31,6 +31,11 @@ typedef union
   unsigned int serial_port_flags;
 } SerialPortFlags;
 
+typedef struct
+{
+  char init_string[48];
+} ModemStrings;
+
 int config_init();
 int config_save();
 int config_load();

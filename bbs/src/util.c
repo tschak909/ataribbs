@@ -94,3 +94,27 @@ const char* _log_level(char level)
     }
   return "UNKNOWN";
 }
+
+void putasciichar(char c)
+{
+  switch (c)
+    {
+    case 0x7:
+      putchar(0xfd); // ATASCII BELL
+      break;
+    case 0x8:
+      putchar(0x7e); // ATASCII BS
+      break;
+    case 0x9:
+      putchar(0x7f); // ATASCII TAB
+      break;
+    case 0xa:           // LF - ignore.
+      break;
+    case 0xd:
+      putchar(0x9b);
+      break;
+    default:
+      // pass everything else through.
+      putchar(c);
+    }
+}

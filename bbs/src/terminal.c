@@ -16,19 +16,18 @@
 
 #define DRIVERNAME "D1:ATRRDEV.SER"
 #define MODEM_RESET_STRING "\rATZ\r"
-#define MODEM_RESET_RESPONSE "\r\nOK\r\n"
-#define TERMINAL_TIMEOUT_SEC 5;
+#define MODEM_RESET_RESPONSE "OK"
 
 int terminal_init()
 {
   unsigned char res;
   struct ser_params params;
 
-  params.baudrate = SER_BAUD_9600;
+  params.baudrate = config_serialportflags->scbits.serial_port_baud;
   params.databits = config_serialportflags->scbits.serial_port_data_bits;
   params.stopbits = config_serialportflags->scbits.serial_port_stop_bits;
   params.parity = config_serialportflags->scbits.serial_port_parity;
-  params.handshake = SER_HS_HW;
+  params.handshake = SER_HS_HW; // For now, this is the only option, so...
  
   if (terminal_driver_open() != 0)
     {
@@ -51,6 +50,12 @@ int terminal_init()
   if (terminal_sanity_check() != 0)
     {
       fatal_error("Modem sanity check failed. Aborting.");
+      return 1;
+    }
+
+  if (terminal_init_modem() != 0)
+    {
+      fatal_error("Could not initialize modem. Aborting.");
       return 1;
     }
 
@@ -87,7 +92,14 @@ int terminal_driver_open()
 
 int terminal_sanity_check()
 {
+  log(LOG_LEVEL_NOTICE,"Performing Modem sanity check.");
   return terminal_send_and_expect_response(MODEM_RESET_STRING,MODEM_RESET_RESPONSE);
+}
+
+int terminal_init_modem()
+{
+  log(LOG_LEVEL_NOTICE,"Initializing modem.");
+  return terminal_send_and_expect_response(config_modemstrings->init_string,MODEM_RESET_RESPONSE);
 }
 
 unsigned char terminal_send(const char* sendString, char willEcho)
@@ -118,7 +130,7 @@ unsigned char terminal_send(const char* sendString, char willEcho)
 	    }
 	}
       // Output to screen, let's see if I want to keep this here.
-      putchar(sendString[i]);
+      putasciichar(sendString[i]);
     }
   return 0;
 }
@@ -126,9 +138,7 @@ unsigned char terminal_send(const char* sendString, char willEcho)
 unsigned char terminal_send_and_expect_response(const char* sendString,const char* recvString)
 {
   clock_t beg, end, dur = 0;
-  char* cResp;
-
-  strcpy(cResp,'\0'); // Initialize response string.
+  int i=0;
 
   if (terminal_send(sendString,1) != 0)
     {
@@ -139,49 +149,40 @@ unsigned char terminal_send_and_expect_response(const char* sendString,const cha
     }
 
   beg = clock();
+  dur = 0;
 
-  while (1==1)
+  while (dur < 5) // Remember to fix this damned conditional, when everything is ok.
     {
+      char yet=1; // Only start comparing when the first byte in response is received.
       char c;
-      int i=0;
-      char res = ser_get(&c);
-      if (res != SER_ERR_NO_DATA)
+      while (ser_get(&c) == SER_ERR_NO_DATA) { }; // TODO: come back here, look at atrrdev serial driver and implement error codes.
+      putasciichar(c); // see if I actually want this here.
+      if (i<strlen(recvString))
 	{
-	  // We have data, process it.
-	  // Append byte to string
-	  int len = strlen(cResp);
-	  cResp[len]=c;
-	  cResp[len+1]='\0';
-	  // Output to screen, figure out if i really want this here.
-	  printf("%c",c);
-	  if (i<strlen(recvString))
+	  if (recvString[i]==c && yet==1)
 	    {
-	      // do the compare.
-	      if (recvString[i] != c)
+	      yet=0; // Start comparing, first char matched.
+	    }
+	  if (yet==0)
+	    {
+	      if (recvString[i]!=c) // incorrect character matched.
 		{
-		  char cErr[64];
-		  sprintf(cErr,"Response not matched: output: %s",cResp);
-		  log(LOG_LEVEL_WARNING,cErr);
 		  goto fail;
 		}
-	      else
+	      else // correct character matched.
 		{
-		  // Increment comparator index, in preparation for next byte.
 		  ++i;
 		}
-	    }
-	  else
-	    {
-	      // We matched, return success.
-	      return 0;
 	    }
 	}
       else
 	{
-	  // We have no data, just let it ride.
+	  // All chars matched successfully.
+	  return 0;
 	}
+      // Calculate timeout
       end = clock();
-      dur = (end - beg);
+      dur = ((end - beg) / CLOCKS_PER_SEC);
     }
   
  fail: return 1;

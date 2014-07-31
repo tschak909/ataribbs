@@ -1,6 +1,6 @@
 #ifndef INIT_H
 #define INIT_H
 
-int init();
+unsigned char init();
 
 #endif /* INIT_H */

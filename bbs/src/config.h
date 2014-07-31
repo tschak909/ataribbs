@@ -36,9 +36,9 @@ typedef struct
   char init_string[48];
 } ModemStrings;
 
-int config_init();
-int config_save();
-int config_load();
+unsigned char config_init();
+unsigned char config_save();
+unsigned char config_load();
 void config_done();
 
 #endif /* CONFIG_H */

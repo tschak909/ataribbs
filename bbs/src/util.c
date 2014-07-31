@@ -11,8 +11,8 @@
 #define LOG_FORMAT "%s - %s - %s\n"
 #define LOG_FILE "D1:SYSTEM.LOG"
 
-char printer_error = 0;
-char logfile_error = 0;
+unsigned char printer_error = 0;
+unsigned char logfile_error = 0;
 
 /**
  * A fatal error has occurred.

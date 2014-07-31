@@ -18,7 +18,7 @@
 #define MODEM_RESET_STRING "\rATZ\r"
 #define MODEM_RESET_RESPONSE "OK"
 
-int terminal_init()
+unsigned char terminal_init()
 {
   unsigned char res;
   struct ser_params params;
@@ -62,13 +62,13 @@ int terminal_init()
   return 0; 
 }
 
-int terminal_done()
+unsigned char terminal_done()
 {
   ser_unload();
   return 0;
 }
 
-int terminal_driver_open()
+unsigned char terminal_driver_open()
 {
   unsigned char res = ser_load_driver(DRIVERNAME);
   if (res == SER_ERR_CANNOT_LOAD)
@@ -90,13 +90,13 @@ int terminal_driver_open()
   return 0; 
 }
 
-int terminal_sanity_check()
+unsigned char terminal_sanity_check()
 {
   log(LOG_LEVEL_NOTICE,"Performing Modem sanity check.");
   return terminal_send_and_expect_response(MODEM_RESET_STRING,MODEM_RESET_RESPONSE);
 }
 
-int terminal_init_modem()
+unsigned char terminal_init_modem()
 {
   log(LOG_LEVEL_NOTICE,"Initializing modem.");
   return terminal_send_and_expect_response(config_modemstrings->init_string,MODEM_RESET_RESPONSE);

@@ -12,7 +12,7 @@
 
 #define CONFIG_TEST 1
 
-int config_init()
+unsigned char config_init()
 {
   if (!(config_printflags = malloc(sizeof(PrinterFlags))))
     {
@@ -48,7 +48,7 @@ void config_done()
 
 }
 
-int config_save()
+unsigned char config_save()
 {
   FILE* pFile;
   printf("config_save()\n");
@@ -97,7 +97,7 @@ int config_save()
   return 0;
 }
 
-int config_load()
+unsigned char config_load()
 {
   FILE *pFile;
   pFile = fopen(FILE_BBS_CONFIG,"r");

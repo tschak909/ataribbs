@@ -7,7 +7,7 @@
 #include "util.h"
 #include "terminal.h"
 
-int init()
+unsigned char init()
 {
   config_init();
   config_save();

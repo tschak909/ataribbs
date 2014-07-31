@@ -10,12 +10,12 @@ ModemStrings *config_modemstrings = NULL;
 /**
  * The run() loop. This is run after init() finishes.
  */
-int run()
+unsigned char run()
 {
   return 0;
 }
 
-int main(void)
+unsigned char main(void)
 {
   int retCode = 0;
   retCode = init();

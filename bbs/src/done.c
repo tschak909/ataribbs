@@ -6,7 +6,7 @@
 #include "config.h"
 #include "terminal.h"
 
-int done()
+unsigned char done()
 {
   terminal_done();
   config_done();

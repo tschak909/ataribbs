@@ -13,7 +13,7 @@ TARGETS := atari
 
 # Name of the final, single-file executable.
 # Default: name of the current dir with target name appended
-PROGRAM := bbs
+PROGRAM := bbsconf
 
 # Path(s) to additional libraries required for linking the program
 # Use only if you don't want to place copies of the libraries in SRCDIR

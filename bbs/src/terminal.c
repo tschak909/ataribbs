@@ -17,6 +17,8 @@
 #define DRIVERNAME "D1:ATRRDEV.SER"
 #define MODEM_RESET_STRING "\rATZ\r"
 #define MODEM_RESET_RESPONSE "OK"
+#define MODEM_SEND_NUM_RETRIES 4
+#define MODEM_RECIEVE_TIMEOUT 3
 
 unsigned char terminal_init()
 {
@@ -138,8 +140,10 @@ unsigned char terminal_send(const char* sendString, char willEcho)
 unsigned char terminal_send_and_expect_response(const char* sendString,const char* recvString)
 {
   clock_t beg, end, dur = 0;
-  int i=0;
+  char i=0;
+  char retries=0; 
 
+ retry:
   if (terminal_send(sendString,1) != 0)
     {
       char cErr[64];
@@ -151,11 +155,11 @@ unsigned char terminal_send_and_expect_response(const char* sendString,const cha
   beg = clock();
   dur = 0;
 
-  while (dur < 5) // Remember to fix this damned conditional, when everything is ok.
+  while ((dur < MODEM_RECIEVE_TIMEOUT) && (retries < MODEM_SEND_NUM_RETRIES)) // Remember to fix this damned conditional, when everything is ok.
     {
       char yet=1; // Only start comparing when the first byte in response is received.
       char c;
-      while (ser_get(&c) == SER_ERR_NO_DATA) { }; // TODO: come back here, look at atrrdev serial driver and implement error codes.
+      while (ser_get(&c) == SER_ERR_NO_DATA) { goto tick; }; // TODO: come back here, look at atrrdev serial driver and implement error codes.
       putasciichar(c); // see if I actually want this here.
       if (i<strlen(recvString))
 	{
@@ -167,7 +171,12 @@ unsigned char terminal_send_and_expect_response(const char* sendString,const cha
 	    {
 	      if (recvString[i]!=c) // incorrect character matched.
 		{
-		  goto fail;
+		  // Sleep a bit, reset everything. Try again.
+		  log(LOG_LEVEL_WARNING,"Incorrect response from MODEM, trying again.");
+		  sleep(2);
+		  i=0;
+		  retries++;
+		  yet=1;
 		}
 	      else // correct character matched.
 		{
@@ -180,10 +189,20 @@ unsigned char terminal_send_and_expect_response(const char* sendString,const cha
 	  // All chars matched successfully.
 	  return 0;
 	}
-      // Calculate timeout
+
+    tick:      // Calculate timeout
       end = clock();
       dur = ((end - beg) / CLOCKS_PER_SEC);
     }
+
+  if (retries < MODEM_SEND_NUM_RETRIES)
+    {
+      log(LOG_LEVEL_WARNING,"Timed out waiting for response. Retrying.");
+      i=0;
+      retries++;
+      goto retry;
+    }
   
- fail: return 1;
+  log(LOG_LEVEL_CRITICAL,"Failed sending to modem.");
+  return 1;
 }

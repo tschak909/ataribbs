@@ -35,7 +35,9 @@ typedef struct
 {
   char init_string[48];
   char ring_string[8];
+  char answer_string[8];
   char connect_string[16];
+  char hungup_string[16];
 } ModemStrings;
 
 unsigned char config_init();

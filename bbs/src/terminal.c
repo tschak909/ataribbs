@@ -23,21 +23,14 @@
 unsigned char terminal_init()
 {
   unsigned char res;
-  struct ser_params params;
-
-  params.baudrate = config_serialportflags->scbits.serial_port_baud;
-  params.databits = config_serialportflags->scbits.serial_port_data_bits;
-  params.stopbits = config_serialportflags->scbits.serial_port_stop_bits;
-  params.parity = config_serialportflags->scbits.serial_port_parity;
-  params.handshake = SER_HS_HW; // For now, this is the only option, so...
  
   if (terminal_driver_open() != 0)
     {
       fatal_error("Serial Driver not opened. Exiting.");
       return 1;
     }
-   
-  if ((res = ser_open(&params)) != SER_ERR_OK)
+
+  if ((res = terminal_open_port()) != SER_ERR_OK)
     {
       char cErr[32];
       sprintf(cErr,"Could not open serial port - Generic Error 0x%x\n",res);
@@ -92,16 +85,32 @@ unsigned char terminal_driver_open()
   return 0; 
 }
 
+unsigned char terminal_open_port()
+{
+  struct ser_params params;
+  params.baudrate = config_serialportflags->scbits.serial_port_baud;
+  params.databits = config_serialportflags->scbits.serial_port_data_bits;
+  params.stopbits = config_serialportflags->scbits.serial_port_stop_bits;
+  params.parity = config_serialportflags->scbits.serial_port_parity;
+  params.handshake = SER_HS_HW; // For now, this is the only option, so...
+  return ser_open(&params);
+}
+
+unsigned char terminal_close_port()
+{
+  return ser_close();
+}
+
 unsigned char terminal_sanity_check()
 {
   log(LOG_LEVEL_NOTICE,"Performing Modem sanity check.");
-  return terminal_send_and_expect_response(MODEM_RESET_STRING,MODEM_RESET_RESPONSE);
+  return terminal_send_and_expect_response(MODEM_RESET_STRING,MODEM_RESET_RESPONSE,0);
 }
 
 unsigned char terminal_init_modem()
 {
   log(LOG_LEVEL_NOTICE,"Initializing modem.");
-  return terminal_send_and_expect_response(config_modemstrings->init_string,MODEM_RESET_RESPONSE);
+  return terminal_send_and_expect_response(config_modemstrings->init_string,MODEM_RESET_RESPONSE,0);
 }
 
 unsigned char terminal_send(const char* sendString, char willEcho)
@@ -137,14 +146,14 @@ unsigned char terminal_send(const char* sendString, char willEcho)
   return 0;
 }
 
-unsigned char terminal_send_and_expect_response(const char* sendString,const char* recvString)
+unsigned char terminal_send_and_expect_response(const char* sendString,const char* recvString, unsigned char echoSend)
 {
   clock_t beg, end, dur = 0;
   char i=0;
   char retries=0; 
 
  retry:
-  if (terminal_send(sendString,1) != 0)
+  if (terminal_send(sendString,echoSend) != 0)
     {
       char cErr[64];
       sprintf(cErr,"Could not send string to modem: %s",sendString);

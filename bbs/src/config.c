@@ -67,7 +67,9 @@ unsigned char config_save()
 
   strcpy(config_modemstrings->init_string,"ATZ\r");
   strcpy(config_modemstrings->ring_string,"RING");
-  strcpy(config_modemstrings->connect_string,"CONNECT");
+  strcpy(config_modemstrings->answer_string,"ATA\r");
+  strcpy(config_modemstrings->connect_string,"CONNECT 9600");
+  strcpy(config_modemstrings->hungup_string,"NO CARRIER");
 
 #endif
   pFile = fopen(FILE_BBS_CONFIG,"w+");
@@ -138,7 +140,9 @@ unsigned char config_load()
   printf("\n\n");
   printf("Modem Strings: Init String: %s\n",config_modemstrings->init_string);
   printf("Modem Strings: Ring String: %s\n",config_modemstrings->ring_string);
+  printf("Modem Strings: Answer String: %s\n",config_modemstrings->answer_string);
   printf("Modem Strings: Connect String: %s\n",config_modemstrings->connect_string);
+  printf("Modem Strings: Hung-up String: %s\n",config_modemstrings->hungup_string);
   printf("\n\n");
 #endif CONFIG_TEST
 

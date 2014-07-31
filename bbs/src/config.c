@@ -65,7 +65,9 @@ unsigned char config_save()
   config_serialportflags->scbits.serial_port_parity = SER_PAR_NONE;
   config_serialportflags->scbits.serial_handshake_mode = SER_HS_HW;
 
-  strcpy(config_modemstrings->init_string,"ATE1V1S0=1S7=45\r");
+  strcpy(config_modemstrings->init_string,"ATZ\r");
+  strcpy(config_modemstrings->ring_string,"RING");
+  strcpy(config_modemstrings->connect_string,"CONNECT");
 
 #endif
   pFile = fopen(FILE_BBS_CONFIG,"w+");
@@ -134,7 +136,9 @@ unsigned char config_load()
   printf("Serial port: Parity: 0x%x\n",config_serialportflags->scbits.serial_port_parity);
   printf("Serial port: Handshake mode: 0x%x\n",config_serialportflags->scbits.serial_handshake_mode);
   printf("\n\n");
-  printf("Modem Strings: Initialization String %s",config_modemstrings->init_string);
+  printf("Modem Strings: Init String: %s\n",config_modemstrings->init_string);
+  printf("Modem Strings: Ring String: %s\n",config_modemstrings->ring_string);
+  printf("Modem Strings: Connect String: %s\n",config_modemstrings->connect_string);
   printf("\n\n");
 #endif CONFIG_TEST
 

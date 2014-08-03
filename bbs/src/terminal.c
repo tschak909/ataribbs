@@ -20,10 +20,14 @@
 #define MODEM_SEND_NUM_RETRIES 4
 #define MODEM_RECIEVE_TIMEOUT 3
 
+unsigned char terminal_port_status;
+
 unsigned char terminal_init()
 {
   unsigned char res;
  
+  terminal_port_status = TERMINAL_PORT_CLOSED;
+
   if (terminal_driver_open() != 0)
     {
       fatal_error("Serial Driver not opened. Exiting.");
@@ -60,6 +64,7 @@ unsigned char terminal_init()
 unsigned char terminal_done()
 {
   ser_unload();
+  terminal_port_status = TERMINAL_PORT_CLOSED;
   return 0;
 }
 
@@ -88,17 +93,38 @@ unsigned char terminal_driver_open()
 unsigned char terminal_open_port()
 {
   struct ser_params params;
+  unsigned char ret;
   params.baudrate = config_serialportflags->scbits.serial_port_baud;
   params.databits = config_serialportflags->scbits.serial_port_data_bits;
   params.stopbits = config_serialportflags->scbits.serial_port_stop_bits;
   params.parity = config_serialportflags->scbits.serial_port_parity;
   params.handshake = SER_HS_HW; // For now, this is the only option, so...
-  return ser_open(&params);
+  if (terminal_port_status == TERMINAL_PORT_CLOSED)
+    {
+      ret = ser_open(&params);
+      if (ret = SER_ERR_OK)
+	terminal_port_status = TERMINAL_PORT_OPEN;
+      else
+	terminal_port_status = TERMINAL_PORT_CLOSED;
+      return ret;
+    }
+  else
+    {
+      ret = SER_ERR_OK; // Port already open.
+    }
 }
 
 unsigned char terminal_close_port()
 {
-  return ser_close();
+  if (terminal_port_status = TERMINAL_PORT_OPEN)
+    {
+      terminal_port_status = TERMINAL_PORT_CLOSED; // ??? Is there a possibility for it to be stuck open?
+      return ser_close();
+    }
+  else
+    {
+      return SER_ERR_OK; // Port is already closed.
+    }
 }
 
 unsigned char terminal_sanity_check()
@@ -113,7 +139,7 @@ unsigned char terminal_init_modem()
   return terminal_send_and_expect_response(config_modemstrings->init_string,MODEM_RESET_RESPONSE,0);
 }
 
-unsigned char terminal_send(const char* sendString, char willEcho)
+unsigned char terminal_send(const char* sendString, unsigned char willEcho)
 {
   unsigned char res;
   int i;

@@ -13,7 +13,10 @@ unsigned char terminal_close_port();
 unsigned char terminal_sanity_check();
 unsigned char terminal_init_modem();
 
-unsigned char terminal_send(const char* sendString, char willEcho);
+unsigned char terminal_send(const char* sendString, unsigned char willEcho);
 unsigned char terminal_send_and_expect_response(const char* sendString, const char* recvString, unsigned char echoSend);
+
+#define TERMINAL_PORT_OPEN 0
+#define TERMINAL_PORT_CLOSED 1
 
 #endif

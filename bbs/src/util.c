@@ -5,6 +5,7 @@
 #include "util.h"
 #include "config.h"
 #include "globals.h"
+#include "terminal.h"
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -34,6 +35,7 @@ void log(char level, const char* msg)
 {
   FILE *printer;
   FILE *logFile;
+  terminal_close_port();
   if (config_printflags->pfbits.printer_use == 1 && 
       config_printflags->pfbits.printer_log == 1 && 
       printer_error == 0)
@@ -62,6 +64,7 @@ void log(char level, const char* msg)
 	}
       fclose(logFile);
     }
+  terminal_open_port();
 }
 
 /**

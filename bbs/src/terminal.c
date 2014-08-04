@@ -251,3 +251,24 @@ void terminal_hang_up()
   terminal_send_and_expect_response("+++","OK",0);
   terminal_send_and_expect_response("ATH0\r","OK",1);
 }
+
+unsigned char terminal_get_char()
+{
+  unsigned char c;
+  while (ser_get(&c) == SER_ERR_NO_DATA) { /* Put timer tick in here. */ }
+  return c;
+}
+
+unsigned char terminal_get_and_echo()
+{
+  unsigned char c = terminal_get_char();
+  putasciichar(c);
+  return c;
+}
+
+unsigned char terminal_get_and_echo_char(char e)
+{
+  unsigned char c = terminal_get_char();
+  putasciichar(e);
+  return c;
+}

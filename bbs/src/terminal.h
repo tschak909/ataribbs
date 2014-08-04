@@ -15,9 +15,11 @@ unsigned char terminal_init_modem();
 
 unsigned char terminal_send(const char* sendString, unsigned char willEcho);
 unsigned char terminal_send_and_expect_response(const char* sendString, const char* recvString, unsigned char echoSend);
-
 void terminal_flush();
 void terminal_hang_up();
+unsigned char terminal_get_char();
+unsigned char terminal_get_and_echo();
+unsigned char terminal_get_and_echo_char(char c);
 
 #define TERMINAL_PORT_OPEN 0
 #define TERMINAL_PORT_CLOSED 1

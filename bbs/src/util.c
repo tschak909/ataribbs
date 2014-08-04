@@ -8,6 +8,7 @@
 #include "terminal.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <errno.h>
 
 #define LOG_FORMAT "%s - %s - %s\n"
 #define LOG_FILE "D1:SYSTEM.LOG"
@@ -35,7 +36,6 @@ void log(char level, const char* msg)
 {
   FILE *printer;
   FILE *logFile;
-  terminal_close_port();
   if (config_printflags->pfbits.printer_use == 1 && 
       config_printflags->pfbits.printer_log == 1 && 
       printer_error == 0)
@@ -64,7 +64,6 @@ void log(char level, const char* msg)
 	}
       fclose(logFile);
     }
-  terminal_open_port();
 }
 
 /**

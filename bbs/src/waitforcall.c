@@ -17,7 +17,7 @@ unsigned char waitforcall()
 {
   unsigned char i=0; // Received string from modem index.
   unsigned char c; // Last received modem character.
-  char* match; // String to match.
+  char* match=NULL; // String to match.
   unsigned char ringCounter; // Ring counter.
 
   log(LOG_LEVEL_NOTICE,"Waiting for call.");
@@ -29,7 +29,6 @@ unsigned char waitforcall()
       waitforcall_check_console_switches();
       waitforcall_check_keyboard();
     }
-
   if (!match) // If no match yet.
     {
       if ((c==config_modemstrings->ring_string[0]))

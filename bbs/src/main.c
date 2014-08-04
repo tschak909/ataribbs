@@ -22,6 +22,7 @@ unsigned char run()
   int bQuit=1;
   while (bQuit==1)
     {
+      terminal_init();
       res = waitforcall();
       if (res == WAITFORCALL_CONNECTED)
 	{
@@ -33,14 +34,14 @@ unsigned char run()
 
 void bbs()
 {
+  char tmp[128];
   printf("bbs()\n\n");
   log(LOG_LEVEL_NOTICE,"Connected!");
-  terminal_send("THIS BBS IS UNDER CONSTRUCTION. PLEASE CHECK BACK LATER.\n",0);
-  terminal_send_and_expect_response("+++","OK",0);
-  terminal_send("ATH0\r",1);
+  sprintf(tmp,"THIS BBS IS UNDER CONSTRUCTION. PLEASE CHECK BACK LATER.\r\n");
+  terminal_send(tmp,0);
+  terminal_hang_up();
   log(LOG_LEVEL_NOTICE,"Hung up.");
   sleep(2);
-  terminal_open_port();
 }
 
 unsigned char main(void)

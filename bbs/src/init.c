@@ -13,6 +13,11 @@ unsigned char init()
   config_save();
   config_load();
   log(LOG_LEVEL_NOTICE,"BBS Initializing. Loading config file: " FILE_BBS_CONFIG);
-  terminal_init();
+
+  if (terminal_driver_open() != 0)
+    {
+      fatal_error("Serial Driver not opened. Exiting.");
+      return 1;
+    }
   return 0;
 }

@@ -59,7 +59,7 @@ unsigned char config_save()
   config_printflags->pfbits.printer_bbs_output = 1;
 
   config_serialportflags->serial_port_flags = 0;
-  config_serialportflags->scbits.serial_port_baud = SER_BAUD_9600;
+  config_serialportflags->scbits.serial_port_baud = SER_BAUD_56_875; // 115200 with extended codes.
   config_serialportflags->scbits.serial_port_data_bits = SER_BITS_8;
   config_serialportflags->scbits.serial_port_stop_bits = SER_STOP_1;
   config_serialportflags->scbits.serial_port_parity = SER_PAR_NONE;
@@ -68,7 +68,7 @@ unsigned char config_save()
   strcpy(config_modemstrings->init_string,"ATZ\r");
   strcpy(config_modemstrings->ring_string,"RING");
   strcpy(config_modemstrings->answer_string,"ATA\r");
-  strcpy(config_modemstrings->connect_string,"CONNECT 9600");
+  strcpy(config_modemstrings->connect_string,"CONNECT 115200");
   strcpy(config_modemstrings->hungup_string,"NO CARRIER");
 
 #endif
@@ -127,7 +127,7 @@ unsigned char config_load()
     }
 
 #ifdef CONFIG_TEST
-  printf("Configuration values:\n");
+  /*  printf("Configuration values:\n");
   printf("---------------------\n");
   printf("Printer: Use Printer: %d\n",config_printflags->pfbits.printer_use);
   printf("Printer: Use for Logging: %d\n",config_printflags->pfbits.printer_log);
@@ -143,7 +143,7 @@ unsigned char config_load()
   printf("Modem Strings: Answer String: %s\n",config_modemstrings->answer_string);
   printf("Modem Strings: Connect String: %s\n",config_modemstrings->connect_string);
   printf("Modem Strings: Hung-up String: %s\n",config_modemstrings->hungup_string);
-  printf("\n\n");
+  printf("\n\n"); */
 #endif CONFIG_TEST
 
   return 0;

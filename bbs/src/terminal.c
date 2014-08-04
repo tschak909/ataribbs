@@ -26,14 +26,6 @@ unsigned char terminal_init()
 {
   unsigned char res;
  
-  terminal_port_status = TERMINAL_PORT_CLOSED;
-
-  if (terminal_driver_open() != 0)
-    {
-      fatal_error("Serial Driver not opened. Exiting.");
-      return 1;
-    }
-
   if ((res = terminal_open_port()) != SER_ERR_OK)
     {
       char cErr[32];
@@ -43,8 +35,6 @@ unsigned char terminal_init()
     }
   
   // Port is open, ready for business. Attempt a sanity check.
-
-  printf("Port open.\n");
 
   if (terminal_sanity_check() != 0)
     {
@@ -63,6 +53,7 @@ unsigned char terminal_init()
 
 unsigned char terminal_done()
 {
+  ser_close();
   ser_unload();
   terminal_port_status = TERMINAL_PORT_CLOSED;
   return 0;
@@ -87,6 +78,7 @@ unsigned char terminal_driver_open()
       sprintf(cErr,"Can't open serial driver " DRIVERNAME " - Error: 0x%x",res);
       fatal_error(cErr);
     }
+  terminal_port_status = TERMINAL_PORT_CLOSED;
   return 0; 
 }
 
@@ -108,7 +100,7 @@ unsigned char terminal_open_port()
 	terminal_port_status = TERMINAL_PORT_CLOSED;
       return ret;
     }
-  else
+      else
     {
       ret = SER_ERR_OK; // Port already open.
     }
@@ -116,15 +108,17 @@ unsigned char terminal_open_port()
 
 unsigned char terminal_close_port()
 {
-  if (terminal_port_status = TERMINAL_PORT_OPEN)
+  if (terminal_port_status == TERMINAL_PORT_OPEN)
     {
       terminal_port_status = TERMINAL_PORT_CLOSED; // ??? Is there a possibility for it to be stuck open?
       return ser_close();
     }
   else
     {
+      printf("Terminal port already closed.");
       return SER_ERR_OK; // Port is already closed.
-    }
+      }
+  return 0;
 }
 
 unsigned char terminal_sanity_check()
@@ -169,6 +163,7 @@ unsigned char terminal_send(const char* sendString, unsigned char willEcho)
       // Output to screen, let's see if I want to keep this here.
       putasciichar(sendString[i]);
     }
+  terminal_flush();
   return 0;
 }
 
@@ -190,7 +185,7 @@ unsigned char terminal_send_and_expect_response(const char* sendString,const cha
   beg = clock();
   dur = 0;
 
-  while ((dur < MODEM_RECIEVE_TIMEOUT) && (retries < MODEM_SEND_NUM_RETRIES)) // Remember to fix this damned conditional, when everything is ok.
+  while ((dur < MODEM_RECIEVE_TIMEOUT) && (retries < MODEM_SEND_NUM_RETRIES))
     {
       char yet=1; // Only start comparing when the first byte in response is received.
       char c;
@@ -222,6 +217,7 @@ unsigned char terminal_send_and_expect_response(const char* sendString,const cha
       else
 	{
 	  // All chars matched successfully.
+	  terminal_flush();
 	  return 0;
 	}
 
@@ -235,9 +231,23 @@ unsigned char terminal_send_and_expect_response(const char* sendString,const cha
       log(LOG_LEVEL_WARNING,"Timed out waiting for response. Retrying.");
       i=0;
       retries++;
+      terminal_flush();
       goto retry;
     }
   
   log(LOG_LEVEL_CRITICAL,"Failed sending to modem.");
+  terminal_flush();
   return 1;
+}
+
+void terminal_flush()
+{
+  char c;
+  while (ser_get(&c) != SER_ERR_NO_DATA) { /* just spin and flush data. */}
+}
+
+void terminal_hang_up()
+{
+  terminal_send_and_expect_response("+++","OK",0);
+  terminal_send_and_expect_response("ATH0\r","OK",1);
 }

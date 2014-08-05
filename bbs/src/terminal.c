@@ -13,6 +13,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <time.h>
+#include <atari.h>
 
 #define DRIVERNAME "D1:ATRRDEV.SER"
 #define MODEM_RESET_STRING "\rATZ\r"
@@ -139,7 +140,14 @@ unsigned char terminal_send(const char* sendString, unsigned char willEcho)
   int i;
   for (i=0;i<strlen(sendString);++i)
     {
-      res = ser_put(sendString[i]);
+      if (sendString[i] == '\n')
+	{
+	  res = ser_put(0x0a); // Fix idiotic newline translation.
+	}
+      else
+	{
+	  res = ser_put(sendString[i]);
+	}
       if (res == SER_ERR_OVERFLOW)
 	{
 	  // We're overflowing, wait a moment. 
@@ -256,19 +264,53 @@ unsigned char terminal_get_char()
 {
   unsigned char c;
   while (ser_get(&c) == SER_ERR_NO_DATA) { /* Put timer tick in here. */ }
+   return c;
+}
+
+unsigned char terminal_get_and_echo(unsigned char i)
+{
+  unsigned char c = terminal_get_char();
+   if (is_a_backspace(c)==1)
+    {
+      if (i>0)
+	{
+	  putasciichar(c);
+	  ser_put(c);
+	}
+    }
+  else
+    {
+      putasciichar(c);
+      ser_put(c);
+    }
   return c;
 }
 
-unsigned char terminal_get_and_echo()
+unsigned char terminal_get_and_echo_char(unsigned char i, unsigned char e)
 {
   unsigned char c = terminal_get_char();
-  putasciichar(c);
+   if (is_a_backspace(c)==1)
+    {
+      if (i>0)
+	{
+	  putasciichar(c);
+	  ser_put(c);
+	}
+    }
+  else
+    {
+      if (is_a_return(c)==0)
+	{
+	  putasciichar(e);
+	  ser_put(e);
+	}
+    }
   return c;
 }
 
-unsigned char terminal_get_and_echo_char(char e)
+void terminal_send_eol()
 {
-  unsigned char c = terminal_get_char();
-  putasciichar(e);
-  return c;
+  char buf[3];
+  sprintf(buf,"\r\n");
+  terminal_send(buf,0);
 }

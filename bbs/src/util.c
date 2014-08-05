@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
+#include <atari.h>
 
 #define LOG_FORMAT "%s - %s - %s\n"
 #define LOG_FILE "D1:SYSTEM.LOG"
@@ -105,7 +106,8 @@ void putasciichar(char c)
       putchar(0xfd); // ATASCII BELL
       break;
     case 0x8:
-      putchar(0x7e); // ATASCII BS
+    case 0x7f:
+      putchar(CH_DEL); // ATASCII BS
       break;
     case 0x9:
       putchar(0x7f); // ATASCII TAB
@@ -119,4 +121,14 @@ void putasciichar(char c)
       // pass everything else through.
       putchar(c);
     }
+}
+
+unsigned char is_a_backspace(unsigned char c)
+{
+  return c==0x7f || c==0x8;
+}
+
+unsigned char is_a_return(unsigned char c)
+{
+  return c==0x0d;
 }

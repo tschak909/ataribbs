@@ -1,11 +1,13 @@
 #include <stdio.h>
 #include <unistd.h>
+#include <stdlib.h>
 #include "config.h"
 #include "terminal.h"
 #include "init.h"
 #include "done.h"
 #include "waitforcall.h"
 #include "util.h"
+#include "input.h"
 
 PrinterFlags *config_printflags = NULL;
 SerialPortFlags *config_serialportflags = NULL; 
@@ -34,11 +36,20 @@ unsigned char run()
 
 void bbs()
 {
-  char tmp[128];
+  char* name;
+  char* password; 
   printf("bbs()\n\n");
   log(LOG_LEVEL_NOTICE,"Connected!");
-  sprintf(tmp,"THIS BBS IS UNDER CONSTRUCTION. PLEASE CHECK BACK LATER.\r\n");
-  terminal_send(tmp,0);
+  terminal_send("What is your name? ",0);
+  name = input_line_and_echo();
+  terminal_send_eol();
+  printf("name is %s\n",name);
+  free(name);
+  terminal_send("Password? ",0);
+  password = input_line_and_echo_char('*');
+  terminal_send_eol();
+  printf("password is %s\n",password);
+  free(password);
   terminal_hang_up();
   log(LOG_LEVEL_NOTICE,"Hung up.");
   sleep(2);

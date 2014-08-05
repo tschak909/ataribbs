@@ -16,5 +16,6 @@ void fatal_error(const char* msg);
 void log(char level, const char* msg);
 const char* _log_level(char level);
 const char* _log_date_time();
-
+unsigned char is_a_backspace(unsigned char c);
+unsigned char is_a_return(unsigned char c);
 #endif /* UTIL_H */

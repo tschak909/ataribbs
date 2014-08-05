@@ -5,12 +5,14 @@
 #ifndef WAITFORCALL_H
 #define WAITFORCALL_H
 
-#define WAITFORCALL_CONNECTED 3
-#define WAITFORCALL_NO_CARRIER 4
+#define WAITFORCALL_NOKEY 0
+#define WAITFORCALL_EXIT 0x18
+#define WAITFORCALL_CONNECTED 0xff
+#define WAITFORCALL_NO_CARRIER 0xfe
 
 unsigned char waitforcall();
 void waitforcall_check_console_switches();
-void waitforcall_check_keyboard();
+unsigned char waitforcall_check_keyboard();
 unsigned char waitforcall_answer();
 
 #endif /* WAITFORCALL_H */

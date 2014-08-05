@@ -26,10 +26,15 @@ unsigned char run()
     {
       terminal_init();
       res = waitforcall();
-      if (res == WAITFORCALL_CONNECTED)
+      switch(res)
 	{
+	case WAITFORCALL_CONNECTED:
 	  bbs();
-	}
+	  break;
+	case WAITFORCALL_EXIT:
+	  return 0;
+	  break;
+	}      
     }
   return 0;
 }

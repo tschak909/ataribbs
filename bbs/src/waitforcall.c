@@ -10,24 +10,30 @@
 #include <serial.h>
 #include <stdio.h>
 #include <string.h>
+#include <conio.h>
 
 #define NUM_RINGS 1
 
 unsigned char waitforcall()
 {
   unsigned char i=0; // Received string from modem index.
-  unsigned char c; // Last received modem character.
+  unsigned char c=0; // Last received modem character.
+  unsigned char key=0; // Last pressed key.
   char* match=NULL; // String to match.
-  unsigned char ringCounter; // Ring counter.
+  unsigned char ringCounter=0; // Ring counter.
 
   log(LOG_LEVEL_NOTICE,"Waiting for call.");
-  printf("Waiting for call.\n");
+  printf("Waiting for call. ^X exits.\n");
  waitloop:
 
   while (ser_get(&c) == SER_ERR_NO_DATA) // TODO: Please get this out of here and into terminal!
     {
       waitforcall_check_console_switches();
-      waitforcall_check_keyboard();
+      key = waitforcall_check_keyboard();
+      if (key != WAITFORCALL_NOKEY)
+	{
+	  return key;
+	}
     }
   if (!match) // If no match yet.
     {
@@ -83,9 +89,16 @@ void waitforcall_check_console_switches()
 
 }
 
-void waitforcall_check_keyboard()
+unsigned char waitforcall_check_keyboard()
 {
-
+  if (!kbhit())
+    {
+      return WAITFORCALL_NOKEY;
+    }
+  else
+    {
+      return cgetc();
+    }
 }
 
 unsigned char waitforcall_answer()

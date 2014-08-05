@@ -125,10 +125,20 @@ void putasciichar(char c)
 
 unsigned char is_a_backspace(unsigned char c)
 {
-  return c==0x7f || c==0x8;
+  return c==0x7f || c==0x8 || c==0x7e;
 }
 
 unsigned char is_a_return(unsigned char c)
 {
+  return c==0x0d || c==0x9b;
+}
+
+unsigned char is_an_ascii_cr(unsigned char c)
+{
   return c==0x0d;
+}
+
+unsigned char is_an_atascii_eol(unsigned char c)
+{
+  return c==0x9b;
 }

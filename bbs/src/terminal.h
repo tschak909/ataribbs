@@ -21,8 +21,12 @@ unsigned char terminal_get_char();
 unsigned char terminal_get_and_echo(unsigned char i);
 unsigned char terminal_get_and_echo_char(unsigned char i, unsigned char c);
 void terminal_send_eol();
+void terminal_determine_eol();
 
 #define TERMINAL_PORT_OPEN 0
 #define TERMINAL_PORT_CLOSED 1
+
+#define TERMINAL_TYPE_ASCII 0x0D
+#define TERMINAL_TYPE_ATASCII 0x9B
 
 #endif

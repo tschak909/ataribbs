@@ -22,10 +22,12 @@
 #define MODEM_RECIEVE_TIMEOUT 3
 
 unsigned char terminal_port_status;
+unsigned char terminal_type;
 
 unsigned char terminal_init()
 {
   unsigned char res;
+  terminal_type = TERMINAL_TYPE_ASCII;
  
   if ((res = terminal_open_port()) != SER_ERR_OK)
     {
@@ -310,7 +312,36 @@ unsigned char terminal_get_and_echo_char(unsigned char i, unsigned char e)
 
 void terminal_send_eol()
 {
-  char buf[3];
-  sprintf(buf,"\r\n");
-  terminal_send(buf,0);
+  switch (terminal_type)
+    {
+    case TERMINAL_TYPE_ASCII:
+      ser_put(0x0d);
+      break;
+    case TERMINAL_TYPE_ATASCII:
+      ser_put(0x9b);
+      break;
+    }
+}
+
+void terminal_determine_eol()
+{
+  char c;
+  terminal_send("Press <ENTER> or <RETURN>: ",0);
+  while (c = terminal_get_char())
+    {
+      if (is_an_ascii_cr(c))
+	{
+	  terminal_send("ASCII Detected.",0);
+	  terminal_type=TERMINAL_TYPE_ASCII;
+	  terminal_send_eol();
+	  return;
+	}
+      else if (is_an_atascii_eol(c))
+	{
+	  terminal_send("ATASCII Detected.",0);
+	  terminal_type=TERMINAL_TYPE_ATASCII;
+	  terminal_send_eol();
+	  return;
+	}
+    }
 }

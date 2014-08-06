@@ -22,6 +22,8 @@ unsigned char terminal_get_and_echo(unsigned char i);
 unsigned char terminal_get_and_echo_char(unsigned char i, unsigned char c);
 void terminal_send_eol();
 void terminal_determine_eol();
+void terminal_send_file(const char* filename);
+void terminal_send_screen(const char* filename);
 
 #define TERMINAL_PORT_OPEN 0
 #define TERMINAL_PORT_CLOSED 1

@@ -46,6 +46,7 @@ void bbs()
   printf("bbs()\n\n");
   log(LOG_LEVEL_NOTICE,"Connected!");
   terminal_determine_eol();
+  terminal_send_screen("WELCOME");
   terminal_send("What is your name? ",0);
   name = input_line_and_echo();
   terminal_send_eol();

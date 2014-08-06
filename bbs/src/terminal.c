@@ -14,12 +14,14 @@
 #include <unistd.h>
 #include <time.h>
 #include <atari.h>
+#include <stdlib.h>
 
 #define DRIVERNAME "D1:ATRRDEV.SER"
 #define MODEM_RESET_STRING "\rATZ\r"
 #define MODEM_RESET_RESPONSE "OK"
 #define MODEM_SEND_NUM_RETRIES 4
 #define MODEM_RECIEVE_TIMEOUT 3
+#define TERMINAL_FILE_SEND_BUFFER_SIZE 1024
 
 unsigned char terminal_port_status;
 unsigned char terminal_type;
@@ -142,7 +144,7 @@ unsigned char terminal_send(const char* sendString, unsigned char willEcho)
   int i;
   for (i=0;i<strlen(sendString);++i)
     {
-      if (sendString[i] == '\n')
+      if (sendString[i] == '\n' && terminal_type == TERMINAL_TYPE_ASCII)
 	{
 	  res = ser_put(0x0a); // Fix idiotic newline translation.
 	}
@@ -316,6 +318,7 @@ void terminal_send_eol()
     {
     case TERMINAL_TYPE_ASCII:
       ser_put(0x0d);
+      ser_put(0x0a);
       break;
     case TERMINAL_TYPE_ATASCII:
       ser_put(0x9b);
@@ -344,4 +347,45 @@ void terminal_determine_eol()
 	  return;
 	}
     }
+}
+
+void terminal_send_file(const char* filename)
+{
+  FILE *fp;
+  char *buf = malloc(TERMINAL_FILE_SEND_BUFFER_SIZE);
+
+  if (!buf)
+    {
+      printf("terminal_send_file() - Out of memory error while allocating buffer.");
+      return;
+    }
+  fp = fopen(filename,"r");
+  if (!fp)
+    {
+      printf("terminal_send_file() - Could not open file %s",filename);
+      return;
+    }
+  while (!feof(fp))
+    {
+      size_t abr = fread(buf,1,TERMINAL_FILE_SEND_BUFFER_SIZE-1,fp);
+      buf[abr+1] = '\0';
+      terminal_send(buf,0);
+    }
+  free(buf);
+}
+
+void terminal_send_screen(const char* filename)
+{
+  char ext[4];
+  char path[20];
+  if (terminal_type == TERMINAL_TYPE_ATASCII)
+    {
+      strcpy(ext,"ATA");
+    }
+  else if (terminal_type == TERMINAL_TYPE_ASCII)
+    {
+      strcpy(ext,"ASC");
+    }
+  sprintf(path,"D1:%s.%s",filename,ext);
+  terminal_send_file(path);
 }

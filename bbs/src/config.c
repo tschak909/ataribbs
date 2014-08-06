@@ -59,7 +59,7 @@ unsigned char config_save()
   config_printflags->pfbits.printer_bbs_output = 1;
 
   config_serialportflags->serial_port_flags = 0;
-  config_serialportflags->scbits.serial_port_baud = SER_BAUD_56_875; // 115200 with extended codes.
+  config_serialportflags->scbits.serial_port_baud = SER_BAUD_9600; // 115200 with extended codes.
   config_serialportflags->scbits.serial_port_data_bits = SER_BITS_8;
   config_serialportflags->scbits.serial_port_stop_bits = SER_STOP_1;
   config_serialportflags->scbits.serial_port_parity = SER_PAR_NONE;

@@ -141,7 +141,7 @@ unsigned char terminal_init_modem()
 unsigned char terminal_send(const char* sendString, unsigned char willEcho)
 {
   unsigned char res;
-  int i;
+  register int i;
   for (i=0;i<strlen(sendString);++i)
     {
       if (sendString[i] == '\n' && terminal_type == TERMINAL_TYPE_ASCII)
@@ -182,7 +182,7 @@ unsigned char terminal_send(const char* sendString, unsigned char willEcho)
 unsigned char terminal_send_and_expect_response(const char* sendString,const char* recvString, unsigned char echoSend)
 {
   clock_t beg, end, dur = 0;
-  char i=0;
+  register char i=0;
   char retries=0; 
 
  retry:
@@ -266,14 +266,14 @@ void terminal_hang_up()
 
 unsigned char terminal_get_char()
 {
-  unsigned char c;
+  register unsigned char c;
   while (ser_get(&c) == SER_ERR_NO_DATA) { /* Put timer tick in here. */ }
    return c;
 }
 
 unsigned char terminal_get_and_echo(unsigned char i)
 {
-  unsigned char c = terminal_get_char();
+  register unsigned char c = terminal_get_char();
    if (is_a_backspace(c)==1)
     {
       if (i>0)
@@ -292,7 +292,7 @@ unsigned char terminal_get_and_echo(unsigned char i)
 
 unsigned char terminal_get_and_echo_char(unsigned char i, unsigned char e)
 {
-  unsigned char c = terminal_get_char();
+  register unsigned char c = terminal_get_char();
    if (is_a_backspace(c)==1)
     {
       if (i>0)
@@ -328,7 +328,7 @@ void terminal_send_eol()
 
 void terminal_determine_eol()
 {
-  char c;
+  register char c;
   terminal_send("Press <ENTER> or <RETURN>: ",0);
   while (c = terminal_get_char())
     {

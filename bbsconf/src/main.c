@@ -3,6 +3,12 @@
 #include <conio.h>
 #include <serial.h>
 #include <string.h>
+#include <stdlib.h>
+#include "config.h"
+
+PrinterFlags *config_printflags = NULL;
+SerialPortFlags *config_serialportflags = NULL; 
+ModemStrings *config_modemstrings = NULL;
 
 unsigned char yesNoOption(const char* prompt, char defaultOption)
 {
@@ -15,14 +21,22 @@ unsigned char yesNoOption(const char* prompt, char defaultOption)
 	case 'Y':
 	case 'y':
 	  printf("Yes.\n");
-	  return c;
+	  return 1;
 	case 'N':
 	case 'n':
 	  printf("No.\n");
-	  return c;
+	  return 0;
 	case 0x9B:
-	  printf("Default: %c\n",defaultOption);
-	  return defaultOption;
+	  if (defaultOption=='Y')
+	    {
+	      printf("Yes.\n");
+	      return 1;
+	    }
+	  else if (defaultOption=='N')
+	    {
+	      printf("No.\n");
+	      return 0;
+	    }
 	default:
 	  printf("%c",0xfd);
 	}
@@ -183,12 +197,12 @@ unsigned char parityOption()
 const char* stringOption(const char* prompt, const char* defaultOption)
 {
   char str[80];
-  printf("%s (default: %s)\n",prompt,defaultOption);
-  scanf("%s",str);
-  if (str == "\n")
+  printf("%s\n(default: %s):\n",prompt,defaultOption);
+  fgets(str,80,stdin);
+  if (str[0] == 0x9b)
     {
       putchar(0x1c);
-      printf("Returning Default option: %s",defaultOption);
+      printf("Returning Default option: %s\n\n",defaultOption);
       return strdup(defaultOption);
     }
   else
@@ -222,24 +236,57 @@ void header()
   printf("\n");
 }
 
-unsigned char main(int argc, char* argv[])
+void init()
 {
+  if (!(config_printflags = calloc(1,sizeof(PrinterFlags))))
+    {
+      perror("Could not allocate memory for printer flags.");
+    }
+
+  if (!(config_serialportflags = calloc(1,sizeof(SerialPortFlags))))
+    {
+      perror("Could not allocate memory for serial port settings.");
+    }
+
+  if (!(config_modemstrings = calloc(1,sizeof(ModemStrings))))
+    {
+      perror("Could not allocate memory for modem strings.");
+    }
+}
+
+void done()
+{
+  if (config_printflags)
+    free(config_printflags);
+  if (config_serialportflags)
+    free(config_serialportflags);
+  if (config_modemstrings)
+    free(config_modemstrings);
+}
+
+unsigned char main()
+{
+  init();
   cursor(1);
   header();
   printer_options_header();
-  yesNoOption("Use printer",'Y');
-  yesNoOption("Use for log output",'Y');
-  yesNoOption("Use for BBS output",'Y');
-  baudRateOption();
-  dataBitsOption();
-  stopBitsOption();
-  parityOption();
+  config_printflags->pfbits.printer_use = yesNoOption("Use printer",'Y');
+  config_printflags->pfbits.printer_log = yesNoOption("Use for log output",'Y');
+  config_printflags->pfbits.printer_bbs_output = yesNoOption("Use for BBS output",'Y');
+  printf("printflags is %u\n",config_printflags->printer_flags);
+  config_serialportflags->scbits.serial_port_baud = baudRateOption();
+  config_serialportflags->scbits.serial_port_data_bits = dataBitsOption();
+  config_serialportflags->scbits.serial_port_stop_bits = stopBitsOption();
+  config_serialportflags->scbits.serial_port_parity = parityOption();
   modem_strings_header();
-  stringOption("Default Modem Reset String","ATZ\r");
-  stringOption("Default Modem Init String","ATZ\r");
-  stringOption("Default Modem Answer String","ATA\r");
-  stringOption("Default Modem Ring String","RING");
-  stringOption("Default Modem Connect String","CONNECT 115200");
-  stringOption("Default Modem Hangup String","NO CARRIER");
+  strcpy(config_modemstrings->init_string,stringOption("Default Modem Init String","ATZ\r"));
+  strcpy(config_modemstrings->answer_string,stringOption("Default Modem Answer String","ATA\r"));
+  strcpy(config_modemstrings->ring_string,stringOption("Default Modem Ring String","RING"));
+  strcpy(config_modemstrings->connect_string,stringOption("Default Modem Connect String","CONNECT 115200"));
+  strcpy(config_modemstrings->hungup_string,stringOption("Default Modem Hangup String","NO CARRIER"));
+  printf("Writing config file " FILE_BBS_CONFIG "...");
+  config_save();
+  printf("done!");
+  done();
   return 0;
 }

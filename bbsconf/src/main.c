@@ -273,7 +273,6 @@ unsigned char main()
   config_printflags->pfbits.printer_use = yesNoOption("Use printer",'Y');
   config_printflags->pfbits.printer_log = yesNoOption("Use for log output",'Y');
   config_printflags->pfbits.printer_bbs_output = yesNoOption("Use for BBS output",'Y');
-  printf("printflags is %u\n",config_printflags->printer_flags);
   config_serialportflags->scbits.serial_port_baud = baudRateOption();
   config_serialportflags->scbits.serial_port_data_bits = dataBitsOption();
   config_serialportflags->scbits.serial_port_stop_bits = stopBitsOption();
@@ -286,6 +285,7 @@ unsigned char main()
   strcpy(config_modemstrings->hungup_string,stringOption("Default Modem Hangup String","NO CARRIER"));
   printf("Writing config file " FILE_BBS_CONFIG "...");
   config_save();
+  config_load();
   printf("done!");
   done();
   return 0;

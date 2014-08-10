@@ -15,19 +15,19 @@ extern ModemStrings *config_modemstrings;
 
 unsigned char config_init()
 {
-  if (!(config_printflags = calloc(sizeof(PrinterFlags),1)))
+  if (!(config_printflags = calloc(1,sizeof(PrinterFlags))))
     {
       fatal_error("Could not allocate memory for printer flags.");
       return 1;
     }
 
-  if (!(config_serialportflags = calloc(sizeof(SerialPortFlags),1)))
+  if (!(config_serialportflags = calloc(1,sizeof(SerialPortFlags))))
     {
       fatal_error("Could not allocate memory for serial port settings.");
       return 1;
     }
 
-  if (!(config_modemstrings = calloc(sizeof(ModemStrings),1)))
+  if (!(config_modemstrings = calloc(1,sizeof(ModemStrings))))
     {
       fatal_error("Could not allocate memory for modem strings.");
       return 1;
@@ -61,12 +61,12 @@ unsigned char config_save()
       fatal_error("Could not open " FILE_BBS_CONFIG " for writing.\n ");
       return 1;
     }
-  if (fwrite((unsigned int *)config_printflags->printer_flags,sizeof(char),1,pFile) != 1)
+  if (fwrite((PrinterFlags *)config_printflags,sizeof(PrinterFlags),1,pFile) != 1)
     {
       fatal_error("Could not write printer flags to " FILE_BBS_CONFIG " - Disk full? ");
       return 1;
     }
-  if (fwrite((unsigned int *)config_serialportflags->serial_port_flags,sizeof(unsigned int),1,pFile) != 1)
+  if (fwrite((SerialPortFlags *)config_serialportflags,sizeof(SerialPortFlags),1,pFile) != 1)
     {
       fatal_error("Could not write serial port flags to " FILE_BBS_CONFIG " - Disk full? ");
       return 1;
@@ -90,12 +90,12 @@ unsigned char config_load()
       fatal_error("Could not open " FILE_BBS_CONFIG " for reading.\n");
       return 1;
     }
-  if (fread((unsigned int *)config_printflags->printer_flags,sizeof(char),1,pFile) < 1)
+  if (fread((PrinterFlags *)config_printflags,sizeof(PrinterFlags),1,pFile) < 1)
     {
       fatal_error("Could not read printer values from configuration file. File may be truncated.");
       return 1;
     }
-  if (fread((unsigned int *)config_serialportflags->serial_port_flags,sizeof(unsigned int),1,pFile) < 1)
+  if (fread((SerialPortFlags *)config_serialportflags,sizeof(SerialPortFlags),1,pFile) < 1)
     {
       fatal_error("Could not read serial port values from config file. File may be truncated");
       return 1;
@@ -105,8 +105,6 @@ unsigned char config_load()
       fatal_error("Could not read modem strings from config file. File may be truncated");
       return 1;
     }
-
-  printf("\nconfig bytes: %u %u\n",config_printflags->printer_flags,config_serialportflags->serial_port_flags);
 
 #ifdef CONFIG_TEST
   printf("Configuration values:\n");

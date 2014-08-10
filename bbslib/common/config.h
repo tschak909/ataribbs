@@ -7,28 +7,20 @@
 #define FILE_BBS_CONFIG "D1:BBS.CNF"
 #include <stdio.h>
 
-typedef union 
+typedef struct
 {
-  struct 
-  {
-    unsigned int printer_use : 1;
-    unsigned int printer_log : 1;
-    unsigned int printer_bbs_output : 1;
-  } pfbits;
-  unsigned int printer_flags;
+  unsigned int printer_use : 1;
+  unsigned int printer_log : 1;
+  unsigned int printer_bbs_output : 1;
 } PrinterFlags;
 
-typedef union
+typedef struct
 {
-  struct
-  {
-    unsigned int serial_port_baud : 5;
-    unsigned int serial_port_data_bits : 2;
-    unsigned int serial_port_stop_bits : 1;
-    unsigned int serial_port_parity : 3;
-    unsigned int serial_handshake_mode : 2;
-  } scbits;
-  unsigned int serial_port_flags;
+  unsigned int serial_port_baud : 5;
+  unsigned int serial_port_data_bits : 2;
+  unsigned int serial_port_stop_bits : 1;
+  unsigned int serial_port_parity : 3;
+  unsigned int serial_handshake_mode : 2;
 } SerialPortFlags;
 
 typedef struct

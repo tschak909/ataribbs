@@ -94,10 +94,10 @@ unsigned char terminal_open_port()
 {
   struct ser_params params;
   unsigned char ret;
-  params.baudrate = config_serialportflags->scbits.serial_port_baud;
-  params.databits = config_serialportflags->scbits.serial_port_data_bits;
-  params.stopbits = config_serialportflags->scbits.serial_port_stop_bits;
-  params.parity = config_serialportflags->scbits.serial_port_parity;
+  params.baudrate = config_serialportflags->serial_port_baud;
+  params.databits = config_serialportflags->serial_port_data_bits;
+  params.stopbits = config_serialportflags->serial_port_stop_bits;
+  params.parity = config_serialportflags->serial_port_parity;
   params.handshake = SER_HS_HW; // For now, this is the only option, so...
   if (terminal_port_status == TERMINAL_PORT_CLOSED)
     {

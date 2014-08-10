@@ -40,8 +40,8 @@ void log(char level, const char* msg)
 {
   FILE *printer;
   FILE *logFile;
-  if (config_printflags->pfbits.printer_use == 1 && 
-      config_printflags->pfbits.printer_log == 1 && 
+  if (config_printflags->printer_use == 1 && 
+      config_printflags->printer_log == 1 && 
       printer_error == 0)
     {
       printer = fopen("P:","a");

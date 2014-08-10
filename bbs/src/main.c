@@ -1,13 +1,13 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
-#include "config.h"
-#include "terminal.h"
+#include <bbslib/common/config.h>
+#include <bbslib/common/terminal.h>
 #include "init.h"
 #include "done.h"
 #include "waitforcall.h"
-#include "util.h"
-#include "input.h"
+#include <bbslib/common/util.h>
+#include <bbslib/common/input.h>
 
 PrinterFlags *config_printflags = NULL;
 SerialPortFlags *config_serialportflags = NULL; 
@@ -22,6 +22,7 @@ unsigned char run()
 {
   int res;
   int bQuit=1;
+
   while (bQuit==1)
     {
       terminal_init();

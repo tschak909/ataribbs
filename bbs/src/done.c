@@ -3,8 +3,8 @@
  */
 
 #include "done.h"
-#include "config.h"
-#include "terminal.h"
+#include <bbslib/common/config.h>
+#include <bbslib/common/terminal.h>
 
 unsigned char done()
 {

@@ -4,7 +4,6 @@
 
 #include "util.h"
 #include "config.h"
-#include "globals.h"
 #include "terminal.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -16,6 +15,10 @@
 
 unsigned char printer_error = 0;
 unsigned char logfile_error = 0;
+
+extern PrinterFlags *config_printflags;
+extern SerialPortFlags *config_serialportflags;
+extern ModemStrings *config_modemstrings;
 
 /**
  * A fatal error has occurred.

@@ -3,9 +3,9 @@
  */
 
 #include "init.h"
-#include "config.h"
-#include "util.h"
-#include "terminal.h"
+#include <bbslib/common/config.h>
+#include <bbslib/common/util.h>
+#include <bbslib/common/terminal.h>
 
 unsigned char init()
 {

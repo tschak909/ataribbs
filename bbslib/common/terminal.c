@@ -7,7 +7,6 @@
 #include "terminal.h"
 #include "config.h"
 #include "util.h"
-#include "globals.h"
 #include <serial.h>
 #include <6502.h>
 #include <string.h>
@@ -22,6 +21,10 @@
 #define MODEM_SEND_NUM_RETRIES 4
 #define MODEM_RECIEVE_TIMEOUT 3
 #define TERMINAL_FILE_SEND_BUFFER_SIZE 1024
+
+extern PrinterFlags *config_printflags;
+extern SerialPortFlags *config_serialportflags;
+extern ModemStrings *config_modemstrings;
 
 unsigned char terminal_port_status;
 unsigned char terminal_type;
@@ -266,14 +269,14 @@ void terminal_hang_up()
 
 unsigned char terminal_get_char()
 {
-  register unsigned char c;
+  unsigned char c;
   while (ser_get(&c) == SER_ERR_NO_DATA) { /* Put timer tick in here. */ }
    return c;
 }
 
 unsigned char terminal_get_and_echo(unsigned char i)
 {
-  register unsigned char c = terminal_get_char();
+  unsigned char c = terminal_get_char();
    if (is_a_backspace(c)==1)
     {
       if (i>0)
@@ -292,7 +295,7 @@ unsigned char terminal_get_and_echo(unsigned char i)
 
 unsigned char terminal_get_and_echo_char(unsigned char i, unsigned char e)
 {
-  register unsigned char c = terminal_get_char();
+  unsigned char c = terminal_get_char();
    if (is_a_backspace(c)==1)
     {
       if (i>0)
@@ -328,7 +331,7 @@ void terminal_send_eol()
 
 void terminal_determine_eol()
 {
-  register char c;
+  char c;
   terminal_send("Press <ENTER> or <RETURN>: ",0);
   while (c = terminal_get_char())
     {

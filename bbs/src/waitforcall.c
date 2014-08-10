@@ -3,10 +3,10 @@
  */
 
 #include "waitforcall.h"
-#include "config.h"
-#include "util.h"
+#include <bbslib/common/config.h>
+#include <bbslib/common/util.h>
 #include "globals.h"
-#include "terminal.h"
+#include <bbslib/common/terminal.h>
 #include <serial.h>
 #include <stdio.h>
 #include <string.h>

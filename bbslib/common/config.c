@@ -4,13 +4,14 @@
 
 #include "config.h"
 #include "util.h"
-#include "globals.h"
 #include <serial.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-#define CONFIG_TEST 1
+extern PrinterFlags *config_printflags;
+extern SerialPortFlags *config_serialportflags;
+extern ModemStrings *config_modemstrings;
 
 unsigned char config_init()
 {

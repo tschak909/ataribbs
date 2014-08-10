@@ -14,6 +14,11 @@
 
 #define NUM_RINGS 1
 
+unsigned char waitforcall_is_valid_key(char key)
+{
+  return (key == WAITFORCALL_EXIT);
+}
+
 unsigned char waitforcall()
 {
   unsigned char i=0; // Received string from modem index.
@@ -30,7 +35,7 @@ unsigned char waitforcall()
     {
       waitforcall_check_console_switches();
       key = waitforcall_check_keyboard();
-      if (key != WAITFORCALL_NOKEY)
+      if (key != WAITFORCALL_NOKEY && waitforcall_is_valid_key(key))
 	{
 	  return key;
 	}
@@ -91,6 +96,7 @@ void waitforcall_check_console_switches()
 
 unsigned char waitforcall_check_keyboard()
 {
+  cursor(1);
   if (!kbhit())
     {
       return WAITFORCALL_NOKEY;

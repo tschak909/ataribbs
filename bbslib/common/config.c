@@ -15,19 +15,19 @@ extern ModemStrings *config_modemstrings;
 
 unsigned char config_init()
 {
-  if (!(config_printflags = malloc(sizeof(PrinterFlags))))
+  if (!(config_printflags = calloc(sizeof(PrinterFlags),1)))
     {
       fatal_error("Could not allocate memory for printer flags.");
       return 1;
     }
 
-  if (!(config_serialportflags = malloc(sizeof(SerialPortFlags))))
+  if (!(config_serialportflags = calloc(sizeof(SerialPortFlags),1)))
     {
       fatal_error("Could not allocate memory for serial port settings.");
       return 1;
     }
 
-  if (!(config_modemstrings = malloc(sizeof(ModemStrings))))
+  if (!(config_modemstrings = calloc(sizeof(ModemStrings),1)))
     {
       fatal_error("Could not allocate memory for modem strings.");
       return 1;
@@ -106,8 +106,10 @@ unsigned char config_load()
       return 1;
     }
 
+  printf("\nconfig bytes: %u %u\n",config_printflags->printer_flags,config_serialportflags->serial_port_flags);
+
 #ifdef CONFIG_TEST
-  /*  printf("Configuration values:\n");
+  printf("Configuration values:\n");
   printf("---------------------\n");
   printf("Printer: Use Printer: %d\n",config_printflags->pfbits.printer_use);
   printf("Printer: Use for Logging: %d\n",config_printflags->pfbits.printer_log);
@@ -123,7 +125,7 @@ unsigned char config_load()
   printf("Modem Strings: Answer String: %s\n",config_modemstrings->answer_string);
   printf("Modem Strings: Connect String: %s\n",config_modemstrings->connect_string);
   printf("Modem Strings: Hung-up String: %s\n",config_modemstrings->hungup_string);
-  printf("\n\n"); */
+  printf("\n\n");
 #endif CONFIG_TEST
 
   return 0;

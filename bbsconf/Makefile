@@ -18,7 +18,7 @@ PROGRAM := bbsconf
 # Path(s) to additional libraries required for linking the program
 # Use only if you don't want to place copies of the libraries in SRCDIR
 # Default: none
-LIBS    :=
+LIBS    := ../lib/bbslib-atari.lib
 
 # Custom linker configuration file
 # Use only if you don't want to place it in SRCDIR
@@ -27,7 +27,7 @@ CONFIG  :=
 
 # Additional C compiler flags and options.
 # Default: none
-CFLAGS  =
+CFLAGS  = -I..
 
 # Additional assembler flags and options.
 # Default: none

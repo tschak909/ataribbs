@@ -52,27 +52,6 @@ void config_done()
 unsigned char config_save()
 {
   FILE* pFile;
-  printf("config_save()\n");
-#ifdef CONFIG_TEST
-  config_printflags->printer_flags = 0;
-  config_printflags->pfbits.printer_use = 1;
-  config_printflags->pfbits.printer_log = 1;
-  config_printflags->pfbits.printer_bbs_output = 1;
-
-  config_serialportflags->serial_port_flags = 0;
-  config_serialportflags->scbits.serial_port_baud = SER_BAUD_56_875; // 115200 with extended codes.
-  config_serialportflags->scbits.serial_port_data_bits = SER_BITS_8;
-  config_serialportflags->scbits.serial_port_stop_bits = SER_STOP_1;
-  config_serialportflags->scbits.serial_port_parity = SER_PAR_NONE;
-  config_serialportflags->scbits.serial_handshake_mode = SER_HS_HW;
-
-  strcpy(config_modemstrings->init_string,"ATZ\r");
-  strcpy(config_modemstrings->ring_string,"RING");
-  strcpy(config_modemstrings->answer_string,"ATA\r");
-  strcpy(config_modemstrings->connect_string,"CONNECT 115200");
-  strcpy(config_modemstrings->hungup_string,"NO CARRIER");
-
-#endif
   pFile = fopen(FILE_BBS_CONFIG,"w+");
   /**
    * Write printer flags

@@ -4,7 +4,7 @@
 #include <serial.h>
 #include <string.h>
 #include <stdlib.h>
-#include "config.h"
+#include <bbslib/common/config.h>
 
 PrinterFlags *config_printflags = NULL;
 SerialPortFlags *config_serialportflags = NULL; 

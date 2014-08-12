@@ -93,6 +93,20 @@ unsigned char user_add(UserRecord* record)
     }
 
   fclose(fp);
+
+  fp = fopen(FILE_NUMUSERS,"w");
+  if (!fp)
+    {
+      fatal_error("Could not write new value to " FILE_NUMUSERS);
+    }
+  
+  if (fwrite(&numusers,sizeof(unsigned int),1,fp) != 1)
+    {
+      fatal_error("Could not write new value to " FILE_NUMUSERS);
+    }
+
+  fclose(fp);
+
   return 0;
 }
 

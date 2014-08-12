@@ -24,6 +24,7 @@ typedef struct
 {
   unsigned int user_id;
   unsigned short username_hash;
+  long offset;
 } UserIndexRecord;
 
 unsigned char user_add(UserRecord* record);

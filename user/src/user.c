@@ -25,16 +25,20 @@ unsigned int _user_numusers_get()
 {
   FILE *fp;
   unsigned int numusers;
-  fp = fopen(FILE_NUMUSERS,"r");
+  fp = fopen(FILE_NUMUSERS,"w+");
   
   if (!fp)
     {
-       fclose(fp);
+      perror("fopen()");
+      fclose(fp);
       return 0;
     }
-  
+
+  rewind(fp);
+
   if (fread(&numusers,sizeof(unsigned int),1,fp) != 1)
     {
+      perror("fread()");
       fclose(fp);
       return 0;
     }
@@ -44,7 +48,7 @@ unsigned int _user_numusers_get()
 
 unsigned int _user_numusers_set(unsigned int numusers)
 {
-  FILE *fp = fopen(FILE_NUMUSERS,"w");
+  FILE *fp = fopen(FILE_NUMUSERS,"w+");
   if (!fp)
     {
       return 0;
@@ -60,31 +64,25 @@ unsigned int _user_numusers_set(unsigned int numusers)
 
 unsigned int _user_numusers_create()
 {
-  return _user_numusers_set(1);
+  return _user_numusers_set(0);
 }
 
 unsigned int _user_numusers_inc()
 {
   unsigned int numusers;
-
   numusers = _user_numusers_get();
-  if (numusers == 0)
-    {
-      return _user_numusers_create();
-    }
-  
   numusers++;
   return _user_numusers_set(numusers);
-  
 } 
 
 unsigned char user_add(UserRecord* record)
 {
   UserIndexRecord idx;
-  unsigned int numusers = _user_numusers_inc(); // first call of this will return 1
+  unsigned int numusers = 0;
   FILE *datfp = fopen(FILE_USER_DAT,"w+");
   FILE *idxfp = fopen(FILE_USER_IDX,"w+");
   long datoffset;
+  numusers = _user_numusers_inc(); // first call of this will return 1
   fseek(datfp,0,SEEK_END);
   fseek(idxfp,0,SEEK_END);
   datoffset = ftell(datfp);
@@ -109,7 +107,7 @@ void _user_dump()
   idx = calloc(1,sizeof(UserIndexRecord));
   printer = fopen("P:","w");
   fp = fopen(FILE_USER_DAT,"r");
-  while (!feof(fp))
+  do
     {
       fread((UserRecord *)rec, sizeof(UserRecord),1,fp);
       fprintf(printer,"User ID: %u\n",rec->user_id);
@@ -120,25 +118,25 @@ void _user_dump()
       fprintf(printer,"Birthday: %lu\n",rec->birthday);
       fprintf(printer,"Email: %s\n",rec->email);
       fprintf(printer,"\n---\n");
-    }
+    } while (!feof(fp));
   fclose(fp);
   fprintf(printer,"\n\n--\n\n--\n\n");
   fp = fopen(FILE_USER_IDX,"r");
-  while (!feof(fp))
+  do
     {
       fread((UserIndexRecord *)idx, sizeof(UserIndexRecord),1,fp);
       fprintf(printer,"Username Hash: 0x%04x\n",idx->username_hash);
       fprintf(printer,"Offset in File: %lu\n",idx->offset);
       fprintf(printer,"\n--\n");
-    }
+    } while (!feof(fp));
   fclose(fp);
 
   fp = fopen(FILE_NUMUSERS,"r");
-  while (!feof(fp))
+  do
     {
       fread(&numusers, sizeof(unsigned int),1,fp);
       fprintf(printer,"Num Users: %u\n",numusers);
-    }
+    } while (!feof(fp));
   fclose(fp);
   fclose(printer);
 
@@ -155,6 +153,14 @@ unsigned char user_lookup(const char* username, UserRecord* record)
 void main()
 {
   UserRecord *rec;
+
+  printf("Deleting user files for test...");
+  unlink(FILE_USER_DAT);
+  unlink(FILE_USER_IDX);
+  unlink(FILE_NUMUSERS);
+  printf("ok.\n");
+
+  _user_numusers_create();
 
   rec = calloc(1,sizeof(UserRecord));
   if (!rec)
@@ -185,5 +191,7 @@ void main()
   user_add(rec);
 
   free(rec);
+
+  _user_dump();
 
 }

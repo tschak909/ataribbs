@@ -21,127 +21,114 @@ unsigned short _user_name_to_hash(const char* username)
   return crc16(buf,strlen(buf));
 }
 
-unsigned char user_add(UserRecord* record)
+unsigned int _user_numusers_get()
 {
   FILE *fp;
-  long offset;
-  unsigned int numusers = 0;
-  UserIndexRecord idx;
-
-  if (!record)
-    {
-      fatal_error("Refusing to add NULL user.");
-    }
-
+  unsigned int numusers;
   fp = fopen(FILE_NUMUSERS,"r");
+  
   if (!fp)
     {
-      fclose(fp);
-      fp = fopen(FILE_NUMUSERS,"w+");
-      if (!fp)
-	{
-	  fatal_error("Could not create " FILE_NUMUSERS);
-	}
-      if (fwrite(&numusers,sizeof(unsigned int),1,fp) != 1)
-	{
-	  fatal_error("Could not write initial value to " FILE_NUMUSERS);
-	}
-      fclose(fp);
-    }
-  else
-    {
-      if (fread(&numusers,sizeof(unsigned int),1,fp) != 1)
-	{
-	  fatal_error("Could not read value from " FILE_NUMUSERS);
-	}
-      fclose(fp);
-    }
-
-  fp = fopen(FILE_USER_DAT,"w+");
-  fseek(fp,0,SEEK_END);
-
-  if (!fp)
-    {
-      fatal_error("Could not open " FILE_USER_DAT);
-    }
-
-  offset = ftell(fp);
-
-  numusers++;
-  record->user_id = numusers;
-
-  if (fwrite((UserRecord *)record,sizeof(UserRecord),1,fp) != 1)
-    {
-      fatal_error("Could not write user record to " FILE_USER_DAT);
+       fclose(fp);
+      return 0;
     }
   
+  if (fread(&numusers,sizeof(unsigned int),1,fp) != 1)
+    {
+      fclose(fp);
+      return 0;
+    }
   fclose(fp);
+  return numusers;
+}
 
-  fp = fopen(FILE_USER_IDX,"w+");
+unsigned int _user_numusers_set(unsigned int numusers)
+{
+  FILE *fp = fopen(FILE_NUMUSERS,"w");
   if (!fp)
     {
-      fatal_error("Could not open " FILE_USER_IDX);
+      return 0;
     }
 
-  idx.user_id = numusers;
-  idx.username_hash = _user_name_to_hash(record->username);
-  idx.offset = offset;
-
-  fseek(fp,0,SEEK_END);
-
-  if (fwrite((UserIndexRecord *)idx,sizeof(UserIndexRecord),1,fp) != 1)
-    {
-      fatal_error("Could not write index record to " FILE_USER_IDX);
-    }
-
-  fclose(fp);
-
-  fp = fopen(FILE_NUMUSERS,"w");
-  if (!fp)
-    {
-      fatal_error("Could not write new value to " FILE_NUMUSERS);
-    }
-  
   if (fwrite(&numusers,sizeof(unsigned int),1,fp) != 1)
     {
-      fatal_error("Could not write new value to " FILE_NUMUSERS);
+      return 0;
     }
 
-  fclose(fp);
+  return numusers;
+}
 
+unsigned int _user_numusers_create()
+{
+  return _user_numusers_set(1);
+}
+
+unsigned int _user_numusers_inc()
+{
+  unsigned int numusers;
+
+  numusers = _user_numusers_get();
+  if (numusers == 0)
+    {
+      return _user_numusers_create();
+    }
+  
+  numusers++;
+  return _user_numusers_set(numusers);
+  
+} 
+
+unsigned char user_add(UserRecord* record)
+{
+  UserIndexRecord idx;
+  unsigned int numusers = _user_numusers_inc(); // first call of this will return 1
+  FILE *datfp = fopen(FILE_USER_DAT,"w+");
+  FILE *idxfp = fopen(FILE_USER_IDX,"w+");
+  long datoffset = ftell(datfp);
+  fseek(datfp,0,SEEK_END);
+  fseek(idxfp,0,SEEK_END);
+  record->user_id = numusers;
+  idx.username_hash = _user_name_to_hash(record->username);
+  idx.offset = datoffset;
+  fwrite((UserRecord *)record,sizeof(UserRecord),1,datfp);
+  fwrite(&idx,sizeof(UserIndexRecord),1,idxfp);
+  fclose(datfp);
+  fclose(idxfp);
   return 0;
 }
 
 void _user_dump()
 {
   FILE *fp;
+  FILE *printer;
   UserRecord *rec;
   UserIndexRecord *idx;
   unsigned int numusers;
   rec = calloc(1,sizeof(UserRecord));
   idx = calloc(1,sizeof(UserIndexRecord));
+  printer = fopen("P:","w");
   fp = fopen(FILE_USER_DAT,"r");
   while (!feof(fp))
     {
       fread((UserRecord *)rec, sizeof(UserRecord),1,fp);
-      printf("User ID: %u\n",rec->user_id);
-      printf("Username: %s\n",rec->username);
-      printf("Password Hash: 0x%04x",rec->password_hash);
-      printf("From: %s\n",rec->from);
-      printf("Security Level: %u\n",rec->security_level);
-      printf("Birthday: %lu\n",rec->birthday);
-      printf("Email: %s\n",rec->email);
-      printf("\n---\n");
+      fprintf(printer,"User ID: %u\n",rec->user_id);
+      fprintf(printer,"Username: %s\n",rec->username);
+      fprintf(printer,"Password Hash: 0x%04x\n",rec->password_hash);
+      fprintf(printer,"From: %s\n",rec->from);
+      fprintf(printer,"Security Level: %u\n",rec->security_level);
+      fprintf(printer,"Birthday: %lu\n",rec->birthday);
+      fprintf(printer,"Email: %s\n",rec->email);
+      fprintf(printer,"\n---\n");
     }
   fclose(fp);
+  fprintf(printer,"\n\n--\n\n--\n\n");
   fp = fopen(FILE_USER_IDX,"r");
   while (!feof(fp))
     {
       fread((UserIndexRecord *)idx, sizeof(UserIndexRecord),1,fp);
-      printf("User ID: %u\n",idx->user_id);
-      printf("Username Hash: 0x%04x\n",idx->username_hash);
-      printf("Offset in File: %lu\n",idx->offset);
-      printf("\n--\n");
+      fprintf(printer,"Username Hash: 0x%04x\n",idx->username_hash);
+      fprintf(printer,"Offset in File: %lu\n",idx->offset);
+      fprintf(printer,"\n--\n");
     }
   fclose(fp);
 
@@ -149,9 +136,10 @@ void _user_dump()
   while (!feof(fp))
     {
       fread(&numusers, sizeof(unsigned int),1,fp);
-      printf("Num Users: %u\n",numusers);
+      fprintf(printer,"Num Users: %u\n",numusers);
     }
   fclose(fp);
+  fclose(printer);
 
   free(rec);
   free(idx);
@@ -167,12 +155,6 @@ void main()
 {
   UserRecord *rec;
 
-
-  unlink(FILE_USER_DAT);
-  unlink(FILE_USER_IDX);
-  unlink(FILE_NUMUSERS);
-  
-
   rec = calloc(1,sizeof(UserRecord));
   if (!rec)
     {
@@ -180,7 +162,7 @@ void main()
     }
 
   strcpy(rec->username,"TSCHAK909");
-  rec->password_hash = _user_name_to_hash("password");
+  rec->password_hash = _user_name_to_hash("hal9000");
   strcpy(rec->from,"Outer Space");
   rec->security_level=255;
   rec->birthday=123456;
@@ -189,6 +171,7 @@ void main()
   user_add(rec);
 
   free(rec);
+
   rec = calloc(1,sizeof(UserRecord));
 
   strcpy(rec->username,"flashjazzcat");
@@ -199,7 +182,7 @@ void main()
   strcpy(rec->email,"flashjazzcat@atariage.com");
 
   user_add(rec);
- 
-  _user_dump();
+
+  free(rec);
 
 }

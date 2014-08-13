@@ -269,6 +269,9 @@ unsigned char main()
   init();
   cursor(1);
   header();
+
+  printf("Pressing <RETURN> uses default option.\n");
+  
   printer_options_header();
   config_printflags->printer_use = yesNoOption("Use printer",'Y');
   config_printflags->printer_log = yesNoOption("Use for log output",'Y');

@@ -22,7 +22,6 @@ typedef struct
 
 typedef struct
 {
-  unsigned int user_id;
   unsigned short username_hash;
   long offset;
 } UserIndexRecord;

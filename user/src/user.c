@@ -88,7 +88,6 @@ unsigned char user_add(UserRecord* record)
   fseek(datfp,0,SEEK_END);
   fseek(idxfp,0,SEEK_END);
   datoffset = ftell(datfp);
-  printf("datoffset = %lu\n",datoffset);
   record->user_id = numusers;
   idx.username_hash = _user_name_to_hash(record->username);
   idx.offset = datoffset;

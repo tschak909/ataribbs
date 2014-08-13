@@ -147,12 +147,29 @@ void _user_dump()
 
 unsigned char user_lookup(const char* username, UserRecord* record)
 {
+  UserIndexRecord *idx;
+  FILE *idxfp = fopen(FILE_USER_IDX,"w+");
+  FILE *datfp = fopen(FILE_USER_DAT,"w+");
+  unsigned int username_hash = _user_name_to_hash(username);
+  
+  while (!feof(idxfp))
+    {
+      fread((UserIndexRecord *)idx, sizeof(UserIndexRecord),1,idxfp);
+      if (username_hash == idx->username_hash)
+	{
+	  fseek(datfp,0,idx->offset);
+	  fread((UserRecord *)record, sizeof(UserRecord),1,datfp);
+	  return record->user_id;
+	}
+    }
+  record = NULL;
   return 0;
 }
 
 void main()
 {
   UserRecord *rec;
+  unsigned int userid;
 
   printf("Deleting user files for test...");
   unlink(FILE_USER_DAT);
@@ -193,5 +210,12 @@ void main()
   free(rec);
 
   _user_dump();
+
+  rec = calloc(1,sizeof(UserRecord));
+  userid = user_lookup("flashjazzcat",rec);
+  printf("user id: %u\n",userid);
+  printf("lookup from: %s\n",rec->from);
+
+  free(rec);
 
 }

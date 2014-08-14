@@ -10,6 +10,9 @@
 #include <unistd.h>
 #include "user.h"
 
+#define TRUE 1
+#define FALSE 0
+
 PrinterFlags *config_printflags = NULL;
 SerialPortFlags *config_serialportflags = NULL; 
 ModemStrings *config_modemstrings = NULL;
@@ -31,7 +34,7 @@ unsigned int _user_numusers_get()
     {
       perror("fopen()");
       fclose(fp);
-      return 0;
+      return FALSE;
     }
 
   rewind(fp);
@@ -40,7 +43,7 @@ unsigned int _user_numusers_get()
     {
       perror("fread()");
       fclose(fp);
-      return 0;
+      return FALSE;
     }
   fclose(fp);
   return numusers;
@@ -58,6 +61,8 @@ unsigned int _user_numusers_set(unsigned int numusers)
     {
       return 0;
     }
+
+  fclose(fp);
 
   return numusers;
 }
@@ -78,10 +83,24 @@ unsigned int _user_numusers_inc()
 unsigned char user_add(UserRecord* record)
 {
   UserIndexRecord idx;
+  UserRecord *lookup;
   unsigned int numusers = 0;
   FILE *datfp = fopen(FILE_USER_DAT,"w+");
   FILE *idxfp = fopen(FILE_USER_IDX,"w+");
   long datoffset;
+
+  if (!datfp || !idxfp)
+    {
+      // Couldn't open files
+      return FALSE;
+    }
+
+  if (user_lookup(record->username,lookup) == TRUE)
+    {
+      // User exists.
+      return FALSE;
+    }
+
   numusers = _user_numusers_inc(); // first call of this will return 1
   fseek(datfp,0,SEEK_END);
   fseek(idxfp,0,SEEK_END);
@@ -89,84 +108,63 @@ unsigned char user_add(UserRecord* record)
   record->user_id = numusers;
   idx.username_hash = _user_name_to_hash(record->username);
   idx.offset = datoffset;
-  fwrite((UserRecord *)record,sizeof(UserRecord),1,datfp);
-  fwrite(&idx,sizeof(UserIndexRecord),1,idxfp);
+
+  if (fwrite((UserRecord *)record,sizeof(UserRecord),1,datfp) != 1)
+    {
+      fclose(datfp);
+      fclose(idxfp);
+      return FALSE;
+    }
+
+  if (fwrite(&idx,sizeof(UserIndexRecord),1,idxfp) != 1)
+    {
+      fclose(datfp);
+      fclose(idxfp);
+      return FALSE;
+    }
+
   fclose(datfp);
   fclose(idxfp);
-  return 0;
-}
-
-void _user_dump()
-{
-  FILE *fp;
-  FILE *printer;
-  UserRecord *rec;
-  UserIndexRecord *idx;
-  unsigned int numusers;
-  rec = calloc(1,sizeof(UserRecord));
-  idx = calloc(1,sizeof(UserIndexRecord));
-  printer = fopen("P:","w");
-  fp = fopen(FILE_USER_DAT,"r");
-  do
-    {
-      fread((UserRecord *)rec, sizeof(UserRecord),1,fp);
-      fprintf(printer,"User ID: %u\n",rec->user_id);
-      fprintf(printer,"Username: %s\n",rec->username);
-      fprintf(printer,"Password Hash: 0x%04x\n",rec->password_hash);
-      fprintf(printer,"From: %s\n",rec->from);
-      fprintf(printer,"Security Level: %u\n",rec->security_level);
-      fprintf(printer,"Birthday: %lu\n",rec->birthday);
-      fprintf(printer,"Email: %s\n",rec->email);
-      fprintf(printer,"\n---\n");
-    } while (!feof(fp));
-  fclose(fp);
-  fprintf(printer,"\n\n--\n\n--\n\n");
-  fp = fopen(FILE_USER_IDX,"r");
-  do
-    {
-      fread((UserIndexRecord *)idx, sizeof(UserIndexRecord),1,fp);
-      fprintf(printer,"Username Hash: 0x%04x\n",idx->username_hash);
-      fprintf(printer,"Offset in File: %lu\n",idx->offset);
-      fprintf(printer,"\n--\n");
-    } while (!feof(fp));
-  fclose(fp);
-
-  fp = fopen(FILE_NUMUSERS,"r");
-  do
-    {
-      fread(&numusers, sizeof(unsigned int),1,fp);
-      fprintf(printer,"Num Users: %u\n",numusers);
-    } while (!feof(fp));
-  fclose(fp);
-  fclose(printer);
-
-  free(rec);
-  free(idx);
-
+  return TRUE;
 }
 
 unsigned char user_lookup(const char* username, UserRecord* record)
 {
   UserIndexRecord *idx;
-  FILE *idxfp = fopen(FILE_USER_IDX,"w+");
-  FILE *datfp = fopen(FILE_USER_DAT,"w+");
+  FILE *idxfp = fopen(FILE_USER_IDX,"r");
+  FILE *datfp = fopen(FILE_USER_DAT,"r");
   unsigned int username_hash = _user_name_to_hash(username);
-  
+
+  if (!idxfp || !datfp)
+    {
+      fclose(idxfp);
+      fclose(datfp);
+      return FALSE;
+    }
+
+  idx = calloc(1,sizeof(UserIndexRecord));
+
   while (!feof(idxfp))
     {
       fread((UserIndexRecord *)idx, sizeof(UserIndexRecord),1,idxfp);
       if (username_hash == idx->username_hash)
 	{
-	  fseek(datfp,0,idx->offset);
+	  fseek(datfp,idx->offset,SEEK_SET);
 	  fread((UserRecord *)record, sizeof(UserRecord),1,datfp);
-	  return record->user_id;
+	  fclose(idxfp);
+	  fclose(datfp);
+	  free(idx);
+	  return TRUE;
 	}
     }
   record = NULL;
-  return 0;
+  fclose(idxfp);
+  fclose(datfp);
+  free(idx);
+  return FALSE;
 }
 
-void main()
+int main()
 {
   UserRecord *rec;
   unsigned int userid;
@@ -192,8 +190,28 @@ void main()
   rec->birthday=123456;
   strcpy(rec->email,"thom.cherryhomes@gmail.com");
 
-  user_add(rec);
+  printf("Adding user %s... ",rec->username);
+  if (user_add(rec) == FALSE)
+    {
+      printf("FAIL.\n");
+      return FALSE;
+    }
+  else
+    {
+      printf("PASS.\n");
+    }
 
+  printf("Check duplicate during add...");
+  if (user_add(rec) == FALSE)
+    {
+      printf("PASS.\n");
+    }
+  else
+    {
+      printf("FAIL.\n");
+      return FALSE;
+    }
+  
   free(rec);
 
   rec = calloc(1,sizeof(UserRecord));
@@ -205,17 +223,50 @@ void main()
   rec->birthday=552277;
   strcpy(rec->email,"flashjazzcat@atariage.com");
 
-  user_add(rec);
+  printf("Attempting second user add...");
+
+  if (user_add(rec) == FALSE)
+    {
+      printf("FAIL.\n");
+      return FALSE;
+    }
+  else
+    {
+      printf("PASS.\n");
+    }
 
   free(rec);
-
-  _user_dump();
-
   rec = calloc(1,sizeof(UserRecord));
-  userid = user_lookup("flashjazzcat",rec);
-  printf("user id: %u\n",userid);
-  printf("lookup from: %s\n",rec->from);
+
+  printf("Attempting user lookup of TSCHAK909...");
+
+  if (user_lookup("TSCHAK909",rec) == FALSE)
+    {
+      printf("FAIL.\n");
+      return FALSE;
+    }
+  else
+    {
+      printf("PASS.\n");
+      printf("-----\n");
+      printf("user id: %u\n",rec->user_id);
+      printf("from: %s\n",rec->from);
+    }
+
+  printf("Attempting password hash verify\n");
+  printf("for TSCHAK909...");
+
+  if (rec->password_hash != _user_name_to_hash("hal9000"))
+    {
+      printf("FAIL.\n");
+      return FALSE;
+    }
+  else
+    {
+      printf("PASS.\n");
+    }
 
   free(rec);
+  return TRUE;
 
 }

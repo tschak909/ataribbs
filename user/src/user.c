@@ -4,6 +4,7 @@
 
 #include <string.h>
 #include <stdio.h>
+#include <fcntl.h>
 #include <stdlib.h>
 #include <bbslib/common/config.h>
 #include <bbslib/common/util.h>
@@ -26,43 +27,30 @@ unsigned short _user_name_to_hash(const char* username)
 
 unsigned int _user_numusers_get()
 {
-  FILE *fp;
+  int fd;
   unsigned int numusers;
-  fp = fopen(FILE_NUMUSERS,"w+");
+  fd = open(FILE_NUMUSERS,O_RDONLY);
   
-  if (!fp)
+  if (read(fd,&numusers,sizeof(unsigned int)) != sizeof(unsigned int))
     {
-      perror("fopen()");
-      fclose(fp);
+      perror("read()");
+      close(fd);
       return FALSE;
     }
-
-  rewind(fp);
-
-  if (fread(&numusers,sizeof(unsigned int),1,fp) != 1)
-    {
-      perror("fread()");
-      fclose(fp);
-      return FALSE;
-    }
-  fclose(fp);
+  close(fd);
   return numusers;
 }
 
 unsigned int _user_numusers_set(unsigned int numusers)
 {
-  FILE *fp = fopen(FILE_NUMUSERS,"w+");
-  if (!fp)
+  int fd = open(FILE_NUMUSERS,O_RDWR|O_CREAT);
+
+  if (write(fd,&numusers,sizeof(unsigned int)) != sizeof(unsigned int))
     {
       return 0;
     }
 
-  if (fwrite(&numusers,sizeof(unsigned int),1,fp) != 1)
-    {
-      return 0;
-    }
-
-  fclose(fp);
+  close(fd);
 
   return numusers;
 }
@@ -85,15 +73,9 @@ unsigned char user_add(UserRecord* record)
   UserIndexRecord idx;
   UserRecord *lookup;
   unsigned int numusers = 0;
-  FILE *datfp = fopen(FILE_USER_DAT,"w+");
-  FILE *idxfp = fopen(FILE_USER_IDX,"w+");
+  int datfd; 
+  int idxfd;
   long datoffset;
-
-  if (!datfp || !idxfp)
-    {
-      // Couldn't open files
-      return FALSE;
-    }
 
   if (user_lookup(record->username,lookup) == TRUE)
     {
@@ -101,65 +83,62 @@ unsigned char user_add(UserRecord* record)
       return FALSE;
     }
 
+  datfd = open(FILE_USER_DAT,O_CREAT|O_RDWR);
+  idxfd = open(FILE_USER_IDX,O_CREAT|O_RDWR);
+
   numusers = _user_numusers_inc(); // first call of this will return 1
-  fseek(datfp,0,SEEK_END);
-  fseek(idxfp,0,SEEK_END);
-  datoffset = ftell(datfp);
+  datoffset = lseek(datfd,0,SEEK_END);
+  lseek(idxfd,0,SEEK_END);
   record->user_id = numusers;
   idx.username_hash = _user_name_to_hash(record->username);
   idx.offset = datoffset;
 
-  if (fwrite((UserRecord *)record,sizeof(UserRecord),1,datfp) != 1)
+  if (write(datfd,(UserRecord *)record,sizeof(UserRecord)) != sizeof(UserRecord))
     {
-      fclose(datfp);
-      fclose(idxfp);
+      close(datfd);
+      close(idxfd);
       return FALSE;
     }
 
-  if (fwrite(&idx,sizeof(UserIndexRecord),1,idxfp) != 1)
+  if (write(idxfd,&idx,sizeof(UserIndexRecord)) != sizeof(UserIndexRecord))
     {
-      fclose(datfp);
-      fclose(idxfp);
+      close(datfd);
+      close(idxfd);
       return FALSE;
     }
 
-  fclose(datfp);
-  fclose(idxfp);
+  close(datfd);
+  close(idxfd);
   return TRUE;
 }
 
 unsigned char user_lookup(const char* username, UserRecord* record)
 {
   UserIndexRecord *idx;
-  FILE *idxfp = fopen(FILE_USER_IDX,"r");
-  FILE *datfp = fopen(FILE_USER_DAT,"r");
+  int idxfd;
+  int datfd;
   unsigned int username_hash = _user_name_to_hash(username);
 
-  if (!idxfp || !datfp)
-    {
-      fclose(idxfp);
-      fclose(datfp);
-      return FALSE;
-    }
+  idxfd = open(FILE_USER_IDX,O_RDONLY);
+  datfd = open(FILE_USER_DAT,O_RDONLY);
 
   idx = calloc(1,sizeof(UserIndexRecord));
 
-  while (!feof(idxfp))
+  while (read(idxfd,(UserIndexRecord *)idx,sizeof(UserIndexRecord)) == sizeof(UserIndexRecord))
     {
-      fread((UserIndexRecord *)idx, sizeof(UserIndexRecord),1,idxfp);
       if (username_hash == idx->username_hash)
 	{
-	  fseek(datfp,idx->offset,SEEK_SET);
-	  fread((UserRecord *)record, sizeof(UserRecord),1,datfp);
-	  fclose(idxfp);
-	  fclose(datfp);
+	  lseek(datfd,idx->offset,SEEK_SET);
+	  read(datfd,(UserRecord *)record, sizeof(UserRecord));
+	  close(idxfd);
+	  close(datfd);
 	  free(idx);
 	  return TRUE;
 	}
     }
   record = NULL;
-  fclose(idxfp);
-  fclose(datfp);
+  close(idxfd);
+  close(datfd);
   free(idx);
   return FALSE;
 }
@@ -167,7 +146,6 @@ unsigned char user_lookup(const char* username, UserRecord* record)
 int main()
 {
   UserRecord *rec;
-  unsigned int userid;
 
   printf("Deleting user files for test...");
   unlink(FILE_USER_DAT);

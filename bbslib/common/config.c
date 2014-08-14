@@ -7,6 +7,8 @@
 #include <serial.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
+#include <fcntl.h>
 #include <string.h>
 
 extern PrinterFlags *config_printflags;
@@ -51,56 +53,46 @@ void config_done()
 
 unsigned char config_save()
 {
-  FILE* pFile;
-  pFile = fopen(FILE_BBS_CONFIG,"w+");
+  int configfd;
+  configfd = open(FILE_BBS_CONFIG,O_CREAT|O_RDWR);
   /**
    * Write printer flags
    */
-  if (!pFile)
-    {
-      fatal_error("Could not open " FILE_BBS_CONFIG " for writing.\n ");
-      return 1;
-    }
-  if (fwrite((PrinterFlags *)config_printflags,sizeof(PrinterFlags),1,pFile) != 1)
+  if (write(configfd,(PrinterFlags *)config_printflags,sizeof(PrinterFlags)) != sizeof(PrinterFlags))
     {
       fatal_error("Could not write printer flags to " FILE_BBS_CONFIG " - Disk full? ");
       return 1;
     }
-  if (fwrite((SerialPortFlags *)config_serialportflags,sizeof(SerialPortFlags),1,pFile) != 1)
+  if (write(configfd,(SerialPortFlags *)config_serialportflags,sizeof(SerialPortFlags)) != sizeof(SerialPortFlags))
     {
       fatal_error("Could not write serial port flags to " FILE_BBS_CONFIG " - Disk full? ");
       return 1;
     }
-  if (fwrite((ModemStrings *)config_modemstrings,sizeof(ModemStrings),1,pFile) != 1)
+  if (write(configfd,(ModemStrings *)config_modemstrings,sizeof(ModemStrings)) != sizeof(ModemStrings))
     {
       fatal_error("Could not write modem strings to " FILE_BBS_CONFIG " - Disk full? ");
       return 1;
     }
-  fclose(pFile);
+  close(configfd);
 
   return 0;
 }
 
 unsigned char config_load()
 {
-  FILE *pFile;
-  pFile = fopen(FILE_BBS_CONFIG,"r");
-  if (!pFile)
-    {
-      fatal_error("Could not open " FILE_BBS_CONFIG " for reading.\n");
-      return 1;
-    }
-  if (fread((PrinterFlags *)config_printflags,sizeof(PrinterFlags),1,pFile) < 1)
+  int configfd;
+  configfd = open(FILE_BBS_CONFIG,O_RDONLY);
+  if (read(configfd,(PrinterFlags *)config_printflags,sizeof(PrinterFlags)) != sizeof(PrinterFlags))
     {
       fatal_error("Could not read printer values from configuration file. File may be truncated.");
       return 1;
     }
-  if (fread((SerialPortFlags *)config_serialportflags,sizeof(SerialPortFlags),1,pFile) < 1)
+  if (read(configfd,(SerialPortFlags *)config_serialportflags,sizeof(SerialPortFlags)) != sizeof(SerialPortFlags))
     {
       fatal_error("Could not read serial port values from config file. File may be truncated");
       return 1;
     }
-  if (fread((ModemStrings *)config_modemstrings,sizeof(ModemStrings),1,pFile) < 1)
+  if (read(configfd,(ModemStrings *)config_modemstrings,sizeof(ModemStrings)) != sizeof(ModemStrings))
     {
       fatal_error("Could not read modem strings from config file. File may be truncated");
       return 1;

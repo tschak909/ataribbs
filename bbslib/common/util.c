@@ -9,6 +9,9 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <atari.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <string.h>
 
 #define LOG_FORMAT "%s - %s - %s\n"
 #define LOG_FILE "D1:SYSTEM.LOG"
@@ -38,36 +41,28 @@ void fatal_error(const char* msg)
  */
 void log(char level, const char* msg)
 {
-  FILE *printer;
-  FILE *logFile;
+  int printer;
+  int logFile;
+  char* logstring;
+  logstring = calloc(256,sizeof(char));
+  if (!logstring)
+    {
+      return;
+    }
   if (config_printflags->printer_use == 1 && 
       config_printflags->printer_log == 1 && 
       printer_error == 0)
     {
-      printer = fopen("P:","a");
-      if (!printer)
-	{
-	  fatal_error("Could not open printer. Suppressing further output to printer.");
-	  printer_error=1;
-	}
-      else
-	{
-	  fprintf(printer,LOG_FORMAT,_log_date_time(),_log_level(level),msg); 
-	}
-      fclose(printer);
-      logFile = fopen(LOG_FILE,"a");
-      if (!logFile)
-	{
-	  fatal_error("Could not write to " LOG_FILE " suppressing further output to file.");
-	  logfile_error=1;
-	}
-      else
-	{
-	  if (logfile_error == 0)
-	    fprintf(logFile,LOG_FORMAT,_log_date_time(),_log_level(level),msg);
-	}
-      fclose(logFile);
+      printer = open("P:",O_APPEND);
+      sprintf(logstring,LOG_FORMAT,_log_date_time(),_log_level(level),msg);
+      write(printer,logstring,strlen(logstring));
+      close(printer);
+      logFile = open(LOG_FILE,O_APPEND);
+      if (logfile_error == 0)
+	write(logFile,logstring,strlen(logstring));
+      close(logFile);
     }
+  free(logstring);
 }
 
 /**

@@ -14,6 +14,7 @@
 #include <time.h>
 #include <atari.h>
 #include <stdlib.h>
+#include <fcntl.h>
 
 #define DRIVERNAME "D1:ATRRDEV.SER"
 #define MODEM_RESET_STRING "\rATZ\r"
@@ -354,7 +355,8 @@ void terminal_determine_eol()
 
 void terminal_send_file(const char* filename)
 {
-  FILE *fp;
+  int fd;
+  size_t abr;
   char *buf = malloc(TERMINAL_FILE_SEND_BUFFER_SIZE);
 
   if (!buf)
@@ -362,19 +364,14 @@ void terminal_send_file(const char* filename)
       printf("terminal_send_file() - Out of memory error while allocating buffer.");
       return;
     }
-  fp = fopen(filename,"r");
-  if (!fp)
+  fd = open(filename,O_RDONLY);
+  while (abr = read(fd,buf,TERMINAL_FILE_SEND_BUFFER_SIZE))
     {
-      printf("terminal_send_file() - Could not open file %s",filename);
-      return;
-    }
-  while (!feof(fp))
-    {
-      size_t abr = fread(buf,1,TERMINAL_FILE_SEND_BUFFER_SIZE-1,fp);
       buf[abr+1] = '\0';
       terminal_send(buf,0);
     }
   free(buf);
+  close(fd);
 }
 
 void terminal_send_screen(const char* filename)

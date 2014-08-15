@@ -112,35 +112,76 @@ unsigned char user_add(UserRecord* record)
   return TRUE;
 }
 
-unsigned char user_lookup(const char* username, UserRecord* record)
+long _find_user_offset(const char* username)
 {
   UserIndexRecord *idx;
   int idxfd;
-  int datfd;
   unsigned int username_hash = _user_name_to_hash(username);
-
-  idxfd = open(FILE_USER_IDX,O_RDONLY);
-  datfd = open(FILE_USER_DAT,O_RDONLY);
+  long offset = -1;
 
   idx = calloc(1,sizeof(UserIndexRecord));
+  if (!idx)
+    {
+      // Could not allocate.
+      return -1;
+    }
+
+  idxfd = open(FILE_USER_IDX,O_RDONLY);
+  if (idxfd == -1)
+    {
+      // Could not open user index.
+      return -1;
+    }
 
   while (read(idxfd,(UserIndexRecord *)idx,sizeof(UserIndexRecord)) == sizeof(UserIndexRecord))
     {
       if (username_hash == idx->username_hash)
 	{
-	  lseek(datfd,idx->offset,SEEK_SET);
-	  read(datfd,(UserRecord *)record, sizeof(UserRecord));
-	  close(idxfd);
-	  close(datfd);
-	  free(idx);
-	  return TRUE;
+	  offset = idx->offset;
 	}
     }
-  record = NULL;
+  
   close(idxfd);
-  close(datfd);
   free(idx);
-  return FALSE;
+
+  return offset;
+}
+
+unsigned char user_lookup(const char* username, UserRecord* record)
+{
+  int datfd;
+  unsigned int username_hash = _user_name_to_hash(username);
+  long offset = _find_user_offset(username);
+  off_t seeked_offset;
+
+  if (offset == -1)
+    {
+      // User not found.
+      return FALSE;
+    }
+
+  datfd = open(FILE_USER_DAT,O_RDONLY);
+  if (datfd == -1)
+    {
+      // Could not open user file.
+      return FALSE;
+    }
+
+  seeked_offset = lseek(datfd,offset,SEEK_SET);
+  if (seeked_offset!=offset)
+    {
+      // Could not seek to user record.
+      return FALSE;
+    }
+  
+  read(datfd,(UserRecord *)record, sizeof(UserRecord));
+  close(datfd);
+  return TRUE;
+}
+
+unsigned char user_update(UserRecord* record)
+{
+  return 0;
 }
 
 int main()

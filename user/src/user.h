@@ -28,5 +28,6 @@ typedef struct
 
 unsigned char user_add(UserRecord* record);
 unsigned char user_lookup(const char* username, UserRecord* record);
+unsigned char user_update(UserRecord* record);
 
 #endif USER_H

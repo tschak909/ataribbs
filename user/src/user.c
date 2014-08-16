@@ -183,6 +183,35 @@ unsigned char _user_load(long offset, UserRecord* record)
 
 }
 
+unsigned char _user_save(long offset, UserRecord* record)
+{
+  int datfd;
+  off_t seeked_offset;
+
+  datfd = open(FILE_USER_DAT,O_RDWR);
+  if (datfd==-1)
+    {
+      // Could not open user dat.
+      return FALSE;
+    }
+
+  seeked_offset = lseek(datfd,offset,SEEK_SET);
+  if (seeked_offset!=offset)
+    {
+      
+    }
+
+  if (write(datfd,record,sizeof(UserRecord)) != sizeof(UserRecord))
+    {
+      close(datfd);
+      return FALSE;
+    }
+
+  close(datfd);
+  return TRUE;
+
+}
+
 unsigned char user_lookup(const char* username, UserRecord* record)
 {
   unsigned int username_hash = _user_name_to_hash(username);
@@ -219,9 +248,9 @@ unsigned char user_update(UserRecord* record)
       return FALSE;
     }
 
-  if (_user_load(offset,record) != TRUE)
+  if (_user_save(offset,record) != TRUE)
     {
-      // Could not load user record.
+      // Could not save user record.
       return FALSE;
     }
   
@@ -327,8 +356,20 @@ int main()
       printf("PASS.\n");
     }
 
+  printf("Attempting update of user record...");
+  strcpy(rec->from,"Some Other Place");
+
+  if (user_update(rec) == FALSE)
+    {
+      printf("FAIL.\n");
+      return FALSE;
+    }
+  else
+    {
+      printf("PASS");
+    }
+
   free(rec);
 
   return TRUE;
-
 }

@@ -147,12 +147,46 @@ long _find_user_offset(const char* username)
   return offset;
 }
 
-unsigned char user_lookup(const char* username, UserRecord* record)
+unsigned char _user_load(long offset, UserRecord* record)
 {
   int datfd;
+  off_t seeked_offset;
+  if (!record)
+    {
+      // Refuse a null record.
+      return FALSE;
+    }
+
+  datfd = open(FILE_USER_DAT,O_RDONLY);
+  if (datfd == -1)
+    {
+      // file did not open
+      return FALSE;
+    }
+
+  seeked_offset = lseek(datfd,offset,SEEK_SET);
+  if (seeked_offset!=offset)
+    {
+      // could not seek to record.
+      close(datfd);
+      return FALSE;
+    }
+  
+  if (read(datfd,(UserRecord *)record,sizeof(UserRecord)) != sizeof(UserRecord))
+    {
+      close(datfd);
+      return FALSE;
+    }
+
+  close(datfd);
+  return TRUE;
+
+}
+
+unsigned char user_lookup(const char* username, UserRecord* record)
+{
   unsigned int username_hash = _user_name_to_hash(username);
   long offset = _find_user_offset(username);
-  off_t seeked_offset;
 
   if (offset == -1)
     {
@@ -160,28 +194,39 @@ unsigned char user_lookup(const char* username, UserRecord* record)
       return FALSE;
     }
 
-  datfd = open(FILE_USER_DAT,O_RDONLY);
-  if (datfd == -1)
+  if (_user_load(offset,record) != TRUE)
     {
-      // Could not open user file.
       return FALSE;
     }
 
-  seeked_offset = lseek(datfd,offset,SEEK_SET);
-  if (seeked_offset!=offset)
-    {
-      // Could not seek to user record.
-      return FALSE;
-    }
-  
-  read(datfd,(UserRecord *)record, sizeof(UserRecord));
-  close(datfd);
   return TRUE;
+
 }
 
 unsigned char user_update(UserRecord* record)
 {
-  return 0;
+  off_t offset;
+  if (!record)
+    {
+      // Refuse a NULL record.
+      return FALSE;
+    }
+
+  offset=_find_user_offset(record->username);
+  if (offset == -1)
+    {
+      // Could not find user record.
+      return FALSE;
+    }
+
+  if (_user_load(offset,record) != TRUE)
+    {
+      // Could not load user record.
+      return FALSE;
+    }
+  
+  return TRUE;
+
 }
 
 int main()
@@ -230,11 +275,9 @@ int main()
       printf("FAIL.\n");
       return FALSE;
     }
-  
-  free(rec);
-
-  rec = calloc(1,sizeof(UserRecord));
-
+ 
+  memset(rec,0,sizeof(UserRecord));
+ 
   strcpy(rec->username,"flashjazzcat");
   rec->password_hash = _user_name_to_hash("shibby");
   strcpy(rec->from,"Just Past Outer Space");
@@ -254,8 +297,7 @@ int main()
       printf("PASS.\n");
     }
 
-  free(rec);
-  rec = calloc(1,sizeof(UserRecord));
+  memset(rec,0,sizeof(UserRecord));
 
   printf("Attempting user lookup of TSCHAK909...");
 
@@ -286,6 +328,7 @@ int main()
     }
 
   free(rec);
+
   return TRUE;
 
 }

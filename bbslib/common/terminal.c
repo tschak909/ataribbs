@@ -369,14 +369,20 @@ void terminal_send_file(const char* filename)
       printf("terminal_send_file() - Out of memory error while allocating buffer.");
       return;
     }
+
+  terminal_close_port();
+
   fd = open(filename,O_RDONLY);
   while (abr = read(fd,buf,TERMINAL_FILE_SEND_BUFFER_SIZE))
     {
+      terminal_open_port();
       buf[abr+1] = '\0';
       terminal_send(buf,0);
+      terminal_close_port();
     }
   free(buf);
   close(fd);
+  terminal_open_port();
 }
 
 void terminal_send_screen(const char* filename)

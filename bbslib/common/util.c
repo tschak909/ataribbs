@@ -49,6 +49,9 @@ void log(char level, const char* msg)
     {
       return;
     }
+
+  terminal_close_port();
+
   if (config_printflags->printer_use == 1 && 
       config_printflags->printer_log == 1 && 
       printer_error == 0)
@@ -63,6 +66,9 @@ void log(char level, const char* msg)
       close(logFile);
     }
   free(logstring);
+
+  terminal_open_port();
+
 }
 
 /**

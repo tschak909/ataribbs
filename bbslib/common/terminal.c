@@ -30,6 +30,8 @@ extern ModemStrings *config_modemstrings;
 unsigned char terminal_port_status;
 unsigned char terminal_type;
 
+unsigned char seropen_count;
+
 unsigned char terminal_init()
 {
   unsigned char res;
@@ -62,7 +64,7 @@ unsigned char terminal_init()
 
 unsigned char terminal_done()
 {
-  ser_close();
+  terminal_close_port();
   ser_unload();
   terminal_port_status = TERMINAL_PORT_CLOSED;
   return 0;
@@ -71,6 +73,7 @@ unsigned char terminal_done()
 unsigned char terminal_driver_open()
 {
   unsigned char res = ser_load_driver(DRIVERNAME);
+  seropen_count=0;
   if (res == SER_ERR_CANNOT_LOAD)
     {
       fatal_error("Can't load serial driver " DRIVERNAME " - aborting.");
@@ -102,6 +105,7 @@ unsigned char terminal_open_port()
   params.handshake = SER_HS_HW; // For now, this is the only option, so...
   if (terminal_port_status == TERMINAL_PORT_CLOSED)
     {
+      seropen_count++;
       ret = ser_open(&params);
       if (ret = SER_ERR_OK)
 	terminal_port_status = TERMINAL_PORT_OPEN;
@@ -120,13 +124,14 @@ unsigned char terminal_close_port()
   if (terminal_port_status == TERMINAL_PORT_OPEN)
     {
       terminal_port_status = TERMINAL_PORT_CLOSED; // ??? Is there a possibility for it to be stuck open?
+      seropen_count--;
       return ser_close();
     }
   else
     {
-      printf("Terminal port already closed.");
-      return SER_ERR_OK; // Port is already closed.
-      }
+      seropen_count--;
+      return ser_close(); // Port is already closed.
+    }
   return 0;
 }
 

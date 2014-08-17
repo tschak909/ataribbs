@@ -35,7 +35,8 @@ unsigned char run()
 	case WAITFORCALL_EXIT:
 	  return 0;
 	  break;
-	}      
+	}
+      terminal_close_port();
     }
   return 0;
 }

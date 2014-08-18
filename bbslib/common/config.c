@@ -34,7 +34,6 @@ unsigned char config_init()
       fatal_error("Could not allocate memory for modem strings.");
       return 1;
     }
-
 }
 
 void config_done()
@@ -117,6 +116,8 @@ unsigned char config_load()
   printf("Modem Strings: Hung-up String: %s\n",config_modemstrings->hungup_string);
   printf("\n\n");
 #endif CONFIG_TEST
+
+  close(configfd);
 
   return 0;
 }

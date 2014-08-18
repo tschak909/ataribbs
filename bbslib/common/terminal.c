@@ -72,7 +72,8 @@ unsigned char terminal_done()
 
 unsigned char terminal_driver_open()
 {
-  unsigned char res = ser_load_driver(DRIVERNAME);
+  unsigned char res;
+  res = ser_load_driver(DRIVERNAME);
   seropen_count=0;
   if (res == SER_ERR_CANNOT_LOAD)
     {

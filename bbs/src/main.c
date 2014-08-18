@@ -44,21 +44,26 @@ unsigned char run()
 void bbs()
 {
   char* name;
-  char* password; 
+  char* password;
+  char logstring[100];
+
   printf("bbs()\n\n");
   log(LOG_LEVEL_NOTICE,"Connected!");
   terminal_determine_eol();
   terminal_send_screen("WELCOME");
-  terminal_send("What is your name? ",0);
+  terminal_send("This BBS is still being developed.",0);
+  terminal_send_eol();
+  terminal_send("For now, I just log names.",0);
+  terminal_send_eol();
+  terminal_send("Who is this calling? ",0);
   name = input_line_and_echo();
   terminal_send_eol();
-  printf("name is %s\n",name);
-  free(name);
-  terminal_send("Password? ",0);
-  password = input_line_and_echo_char('*');
+  sprintf(logstring,"Login by %s",name);
+  log(LOG_LEVEL_NOTICE,logstring);
+  terminal_send("Thanks for calling... ",0);
   terminal_send_eol();
-  printf("password is %s\n",password);
-  free(password);
+  terminal_send("More will happen soon!",0);
+  terminal_send_eol();
   terminal_hang_up();
   log(LOG_LEVEL_NOTICE,"Hung up.");
   sleep(2);

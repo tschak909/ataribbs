@@ -260,116 +260,116 @@ unsigned char user_update(UserRecord* record)
 
 int main()
 {
-  /* UserRecord *rec; */
+  UserRecord *rec;
 
-  /* printf("Deleting user files for test..."); */
-  /* unlink(FILE_USER_DAT); */
-  /* unlink(FILE_USER_IDX); */
-  /* unlink(FILE_NUMUSERS); */
-  /* printf("ok.\n"); */
+  printf("Deleting user files for test...");
+  unlink(FILE_USER_DAT);
+  unlink(FILE_USER_IDX);
+  unlink(FILE_NUMUSERS);
+  printf("ok.\n");
 
-  /* _user_numusers_create(); */
+  _user_numusers_create();
 
-  /* rec = calloc(1,sizeof(UserRecord)); */
-  /* if (!rec) */
-  /*   { */
-  /*     fatal_error("Could not allocate user record."); */
-  /*   } */
+  rec = calloc(1,sizeof(UserRecord));
+  if (!rec)
+    {
+      fatal_error("Could not allocate user record.");
+    }
 
-  /* strcpy(rec->username,"TSCHAK909"); */
-  /* rec->password_hash = _user_name_to_hash("hal9000"); */
-  /* strcpy(rec->from,"Outer Space"); */
-  /* rec->security_level=255; */
-  /* rec->birthday=123456; */
-  /* strcpy(rec->email,"thom.cherryhomes@gmail.com"); */
+  strcpy(rec->username,"TSCHAK909");
+  rec->password_hash = _user_name_to_hash("hal9000");
+  strcpy(rec->from,"Outer Space");
+  rec->security_level=255;
+  rec->birthday=123456;
+  strcpy(rec->email,"thom.cherryhomes@gmail.com");
 
-  /* printf("Adding user %s... ",rec->username); */
-  /* if (user_add(rec) == FALSE) */
-  /*   { */
-  /*     printf("FAIL.\n"); */
-  /*     return FALSE; */
-  /*   } */
-  /* else */
-  /*   { */
-  /*     printf("PASS.\n"); */
-  /*   } */
+  printf("Adding user %s... ",rec->username);
+  if (user_add(rec) == FALSE)
+    {
+      printf("FAIL.\n");
+      return FALSE;
+    }
+  else
+    {
+      printf("PASS.\n");
+    }
 
-  /* printf("Check duplicate during add..."); */
-  /* if (user_add(rec) == FALSE) */
-  /*   { */
-  /*     printf("PASS.\n"); */
-  /*   } */
-  /* else */
-  /*   { */
-  /*     printf("FAIL.\n"); */
-  /*     return FALSE; */
-  /*   } */
+  printf("Check duplicate during add...");
+  if (user_add(rec) == FALSE)
+    {
+      printf("PASS.\n");
+    }
+  else
+    {
+      printf("FAIL.\n");
+      return FALSE;
+    }
  
-  /* memset(rec,0,sizeof(UserRecord)); */
+  memset(rec,0,sizeof(UserRecord));
  
-  /* strcpy(rec->username,"flashjazzcat"); */
-  /* rec->password_hash = _user_name_to_hash("shibby"); */
-  /* strcpy(rec->from,"Just Past Outer Space"); */
-  /* rec->security_level=20; */
-  /* rec->birthday=552277; */
-  /* strcpy(rec->email,"flashjazzcat@atariage.com"); */
+  strcpy(rec->username,"flashjazzcat");
+  rec->password_hash = _user_name_to_hash("shibby");
+  strcpy(rec->from,"Just Past Outer Space");
+  rec->security_level=20;
+  rec->birthday=552277;
+  strcpy(rec->email,"flashjazzcat@atariage.com");
 
-  /* printf("Attempting second user add..."); */
+  printf("Attempting second user add...");
 
-  /* if (user_add(rec) == FALSE) */
-  /*   { */
-  /*     printf("FAIL.\n"); */
-  /*     return FALSE; */
-  /*   } */
-  /* else */
-  /*   { */
-  /*     printf("PASS.\n"); */
-  /*   } */
+  if (user_add(rec) == FALSE)
+    {
+      printf("FAIL.\n");
+      return FALSE;
+    }
+  else
+    {
+      printf("PASS.\n");
+    }
 
-  /* memset(rec,0,sizeof(UserRecord)); */
+  memset(rec,0,sizeof(UserRecord));
 
-  /* printf("Attempting user lookup of TSCHAK909..."); */
+  printf("Attempting user lookup of TSCHAK909...");
 
-  /* if (user_lookup("TSCHAK909",rec) == FALSE) */
-  /*   { */
-  /*     printf("FAIL.\n"); */
-  /*     return FALSE; */
-  /*   } */
-  /* else */
-  /*   { */
-  /*     printf("PASS.\n"); */
-  /*     printf("-----\n"); */
-  /*     printf("user id: %u\n",rec->user_id); */
-  /*     printf("from: %s\n",rec->from); */
-  /*   } */
+  if (user_lookup("TSCHAK909",rec) == FALSE)
+    {
+      printf("FAIL.\n");
+      return FALSE;
+    }
+  else
+    {
+      printf("PASS.\n");
+      printf("-----\n");
+      printf("user id: %u\n",rec->user_id);
+      printf("from: %s\n",rec->from);
+    }
 
-  /* printf("Attempting password hash verify\n"); */
-  /* printf("for TSCHAK909..."); */
+  printf("Attempting password hash verify\n");
+  printf("for TSCHAK909...");
 
-  /* if (rec->password_hash != _user_name_to_hash("hal9000")) */
-  /*   { */
-  /*     printf("FAIL.\n"); */
-  /*     return FALSE; */
-  /*   } */
-  /* else */
-  /*   { */
-  /*     printf("PASS.\n"); */
-  /*   } */
+  if (rec->password_hash != _user_name_to_hash("hal9000"))
+    {
+      printf("FAIL.\n");
+      return FALSE;
+    }
+  else
+    {
+      printf("PASS.\n");
+    }
 
-  /* printf("Attempting update of user record..."); */
-  /* strcpy(rec->from,"Some Other Place"); */
+  printf("Attempting update of user record...");
+  strcpy(rec->from,"Some Other Place");
 
-  /* if (user_update(rec) == FALSE) */
-  /*   { */
-  /*     printf("FAIL.\n"); */
-  /*     return FALSE; */
-  /*   } */
-  /* else */
-  /*   { */
-  /*     printf("PASS"); */
-  /*   } */
+  if (user_update(rec) == FALSE)
+    {
+      printf("FAIL.\n");
+      return FALSE;
+    }
+  else
+    {
+      printf("PASS");
+    }
 
-  /* free(rec); */
+  free(rec);
 
 
   return TRUE;

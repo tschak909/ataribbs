@@ -404,80 +404,68 @@ void terminal_send_screen(const char* filename)
 
 void terminal_send_up()
 {
-  char buf[4];
   switch (terminal_type)
     {
     case TERMINAL_TYPE_ASCII:
-      buf[0]=0x1B;
-      buf[1]='[';
-      buf[2]='A';
-      buf[3]='\0';
+      ser_put(0x1B);
+      ser_put('[');
+      ser_put('A');
+      putchar(0x1c);
       break;
     case TERMINAL_TYPE_ATASCII:
-      buf[0]=0x1c;
-      buf[1]='\0';
+      ser_put(0x1c);
+      putchar(0x1c);
       break;
     }
-
-  terminal_send(buf,0);
 }
 
 void terminal_send_down()
 {
-  char buf[4];
   switch (terminal_type)
     {
     case TERMINAL_TYPE_ASCII:
-      buf[0]=0x1B;
-      buf[1]='[';
-      buf[2]='B';
-      buf[3]='\0';
+      ser_put(0x1B);
+      ser_put('[');
+      ser_put('B');
+      putchar(0x1d);
       break;
     case TERMINAL_TYPE_ATASCII:
-      buf[0]=0x1d;
-      buf[1]='\0';
+      ser_put(0x1d);
+      putchar(0x1d);
       break;
     }
-
-  terminal_send(buf,0);
 }
 
 void terminal_send_left()
 {
-  char buf[4];
   switch (terminal_type)
     {
     case TERMINAL_TYPE_ASCII:
-      buf[0]=0x1B;
-      buf[1]='[';
-      buf[2]='D';
-      buf[3]='\0';
+      ser_put(0x1B);
+      ser_put('[');
+      ser_put('D');
+      putchar(0x1e);
       break;
     case TERMINAL_TYPE_ATASCII:
-      buf[0]=0x1e;
-      buf[1]='\0';
+      ser_put(0x1e);
+      putchar(0x1e);
       break;
     }
-
-  terminal_send(buf,0);
 }
 
 void terminal_send_right()
 {
-  char buf[4];
   switch (terminal_type)
     {
     case TERMINAL_TYPE_ASCII:
-      buf[0]=0x1B;
-      buf[1]='[';
-      buf[2]='C';
-      buf[3]='\0';
+      ser_put(0x1B);
+      ser_put('[');
+      ser_put('C');
+      putchar(0x1f);
       break;
     case TERMINAL_TYPE_ATASCII:
-      buf[0]=0x1f;
-      buf[1]='\0';
+      ser_put(0x1f);
+      putchar(0x1f);
       break;
     }
-
-  terminal_send(buf,0);
 }

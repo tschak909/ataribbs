@@ -60,12 +60,7 @@ void bbs()
   terminal_send_eol();
   terminal_send("Who is this calling? ",0);
   terminal_send_eol();
-  terminal_send("___________________________________",0);
-  for (i=0;i<35;++i)
-    {
-      terminal_send_left();
-    }
-  name = input_line_and_echo('_');
+  name = prompt_line(1,32);
   terminal_send_eol();
   sprintf(logstring,"Login by %s",name);
   log(LOG_LEVEL_NOTICE,logstring);

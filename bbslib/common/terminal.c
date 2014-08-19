@@ -20,7 +20,7 @@
 #define MODEM_RESET_STRING "\rATZ\r"
 #define MODEM_RESET_RESPONSE "OK"
 #define MODEM_SEND_NUM_RETRIES 4
-#define MODEM_RECIEVE_TIMEOUT 3
+#define MODEM_RECIEVE_TIMEOUT 5
 #define TERMINAL_FILE_SEND_BUFFER_SIZE 1024
 
 extern PrinterFlags *config_printflags;
@@ -270,6 +270,7 @@ void terminal_flush()
 
 void terminal_hang_up()
 {
+  terminal_send_eol();
   terminal_send_and_expect_response("+++","OK",0);
   terminal_send_and_expect_response("ATH0\r","OK",1);
 }
@@ -281,7 +282,7 @@ unsigned char terminal_get_char()
    return c;
 }
 
-unsigned char terminal_get_and_echo(unsigned char i, unsigned char rubout)
+unsigned char terminal_get_and_echo(unsigned char i, unsigned char size, unsigned char rubout)
 {
   unsigned char c = terminal_get_char();
    if (is_a_backspace(c)==1)
@@ -297,13 +298,16 @@ unsigned char terminal_get_and_echo(unsigned char i, unsigned char rubout)
     }
   else
     {
-      putasciichar(c);
-      ser_put(c);
+      if (i<size)
+	{
+	  putasciichar(c);
+	  ser_put(c);
+	}
     }
   return c;
 }
 
-unsigned char terminal_get_and_echo_char(unsigned char i, unsigned char e, unsigned char rubout)
+unsigned char terminal_get_and_echo_char(unsigned char i, unsigned char size, unsigned char e, unsigned char rubout)
 {
   unsigned char c = terminal_get_char();
    if (is_a_backspace(c)==1)
@@ -321,8 +325,11 @@ unsigned char terminal_get_and_echo_char(unsigned char i, unsigned char e, unsig
     {
       if (is_a_return(c)==0)
 	{
-	  putasciichar(e);
-	  ser_put(e);
+	  if (i<size)
+	    {
+	      putasciichar(e);
+	      ser_put(e);
+	    }
 	}
     }
   return c;

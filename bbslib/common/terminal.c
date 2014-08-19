@@ -401,3 +401,83 @@ void terminal_send_screen(const char* filename)
   sprintf(path,"D1:%s.%s",filename,ext);
   terminal_send_file(path);
 }
+
+void terminal_send_up()
+{
+  char buf[4];
+  switch (terminal_type)
+    {
+    case TERMINAL_TYPE_ASCII:
+      buf[0]=0x1B;
+      buf[1]='[';
+      buf[2]='A';
+      buf[3]='\0';
+      break;
+    case TERMINAL_TYPE_ATASCII:
+      buf[0]=0x1c;
+      buf[1]='\0';
+      break;
+    }
+
+  terminal_send(buf,0);
+}
+
+void terminal_send_down()
+{
+  char buf[4];
+  switch (terminal_type)
+    {
+    case TERMINAL_TYPE_ASCII:
+      buf[0]=0x1B;
+      buf[1]='[';
+      buf[2]='B';
+      buf[3]='\0';
+      break;
+    case TERMINAL_TYPE_ATASCII:
+      buf[0]=0x1d;
+      buf[1]='\0';
+      break;
+    }
+
+  terminal_send(buf,0);
+}
+
+void terminal_send_left()
+{
+  char buf[4];
+  switch (terminal_type)
+    {
+    case TERMINAL_TYPE_ASCII:
+      buf[0]=0x1B;
+      buf[1]='[';
+      buf[2]='D';
+      buf[3]='\0';
+      break;
+    case TERMINAL_TYPE_ATASCII:
+      buf[0]=0x1e;
+      buf[1]='\0';
+      break;
+    }
+
+  terminal_send(buf,0);
+}
+
+void terminal_send_right()
+{
+  char buf[4];
+  switch (terminal_type)
+    {
+    case TERMINAL_TYPE_ASCII:
+      buf[0]=0x1B;
+      buf[1]='[';
+      buf[2]='C';
+      buf[3]='\0';
+      break;
+    case TERMINAL_TYPE_ATASCII:
+      buf[0]=0x1f;
+      buf[1]='\0';
+      break;
+    }
+
+  terminal_send(buf,0);
+}

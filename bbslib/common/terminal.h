@@ -12,7 +12,6 @@ unsigned char terminal_open_port();
 unsigned char terminal_close_port();
 unsigned char terminal_sanity_check();
 unsigned char terminal_init_modem();
-
 unsigned char terminal_send(const char* sendString, unsigned char willEcho);
 unsigned char terminal_send_and_expect_response(const char* sendString, const char* recvString, unsigned char echoSend);
 void terminal_flush();
@@ -24,6 +23,10 @@ void terminal_send_eol();
 void terminal_determine_eol();
 void terminal_send_file(const char* filename);
 void terminal_send_screen(const char* filename);
+void terminal_send_up();
+void terminal_send_down();
+void terminal_send_left();
+void terminal_send_right();
 
 #define TERMINAL_PORT_OPEN 0
 #define TERMINAL_PORT_CLOSED 1

@@ -46,17 +46,26 @@ void bbs()
   char* name;
   char* password;
   char logstring[100];
+  char i;
 
   printf("bbs()\n\n");
   log(LOG_LEVEL_NOTICE,"Connected!");
   terminal_determine_eol();
+  sleep(1);
+  terminal_send_clear_screen();
   terminal_send_screen("WELCOME");
   terminal_send("This BBS is still being developed.",0);
   terminal_send_eol();
   terminal_send("For now, I just log names.",0);
   terminal_send_eol();
   terminal_send("Who is this calling? ",0);
-  name = input_line_and_echo();
+  terminal_send_eol();
+  terminal_send("___________________________________",0);
+  for (i=0;i<35;++i)
+    {
+      terminal_send_left();
+    }
+  name = input_line_and_echo('_');
   terminal_send_eol();
   sprintf(logstring,"Login by %s",name);
   log(LOG_LEVEL_NOTICE,logstring);

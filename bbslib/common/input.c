@@ -8,7 +8,7 @@
 #include "terminal.h"
 #include <string.h>
 
-char* input_line_and_echo()
+char* input_line_and_echo(unsigned char rubout)
 {
   unsigned char c=0;
   unsigned char i=0;
@@ -18,7 +18,7 @@ char* input_line_and_echo()
 
   while (is_a_return(c) == 0)
     {
-      c=terminal_get_and_echo(i);
+      c=terminal_get_and_echo(i,rubout);
       if (is_a_backspace(c)==1)
 	{
 	  if (i>0)
@@ -37,7 +37,7 @@ char* input_line_and_echo()
   return strdup(buf);
 }
 
-char* input_line_and_echo_char(unsigned char e)
+char* input_line_and_echo_char(unsigned char e,unsigned char rubout)
 {
   unsigned char c=0;
   unsigned char i=0;
@@ -47,7 +47,7 @@ char* input_line_and_echo_char(unsigned char e)
 
   while (is_a_return(c) == 0)
     {
-      c=terminal_get_and_echo_char(i,e);
+      c=terminal_get_and_echo_char(i,e,rubout);
       if (is_a_backspace(c)==1)
 	{
 	  if (i>0)

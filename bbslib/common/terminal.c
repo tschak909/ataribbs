@@ -281,7 +281,7 @@ unsigned char terminal_get_char()
    return c;
 }
 
-unsigned char terminal_get_and_echo(unsigned char i)
+unsigned char terminal_get_and_echo(unsigned char i, unsigned char rubout)
 {
   unsigned char c = terminal_get_char();
    if (is_a_backspace(c)==1)
@@ -290,6 +290,9 @@ unsigned char terminal_get_and_echo(unsigned char i)
 	{
 	  putasciichar(c);
 	  ser_put(c);
+	  putasciichar(rubout);
+	  ser_put(rubout);
+	  terminal_send_left();
 	}
     }
   else
@@ -300,7 +303,7 @@ unsigned char terminal_get_and_echo(unsigned char i)
   return c;
 }
 
-unsigned char terminal_get_and_echo_char(unsigned char i, unsigned char e)
+unsigned char terminal_get_and_echo_char(unsigned char i, unsigned char e, unsigned char rubout)
 {
   unsigned char c = terminal_get_char();
    if (is_a_backspace(c)==1)
@@ -309,6 +312,9 @@ unsigned char terminal_get_and_echo_char(unsigned char i, unsigned char e)
 	{
 	  putasciichar(c);
 	  ser_put(c);
+	  putasciichar(rubout);
+	  ser_put(rubout);
+	  terminal_send_left();
 	}
     }
   else
@@ -329,9 +335,11 @@ void terminal_send_eol()
     case TERMINAL_TYPE_ASCII:
       ser_put(0x0d);
       ser_put(0x0a);
+      putchar(0x9b);
       break;
     case TERMINAL_TYPE_ATASCII:
       ser_put(0x9b);
+      putchar(0x9b);
       break;
     }
 }
@@ -344,14 +352,14 @@ void terminal_determine_eol()
     {
       if (is_an_ascii_cr(c))
 	{
-	  terminal_send("ASCII Detected.",0);
+	  terminal_send("ASCII",0);
 	  terminal_type=TERMINAL_TYPE_ASCII;
 	  terminal_send_eol();
 	  return;
 	}
       else if (is_an_atascii_eol(c))
 	{
-	  terminal_send("ATASCII Detected.",0);
+	  terminal_send("ATASCII",0);
 	  terminal_type=TERMINAL_TYPE_ATASCII;
 	  terminal_send_eol();
 	  return;
@@ -467,5 +475,21 @@ void terminal_send_right()
       ser_put(0x1f);
       putchar(0x1f);
       break;
+    }
+}
+
+void terminal_send_clear_screen()
+{
+  switch (terminal_type)
+    {
+    case TERMINAL_TYPE_ASCII:
+      ser_put(0x1B);
+      ser_put('[');
+      ser_put('2');
+      ser_put('J');
+      putchar(0x7d);
+    case TERMINAL_TYPE_ATASCII:
+      ser_put(0x7d);
+      putchar(0x7d);
     }
 }

@@ -21,7 +21,7 @@
 #define MODEM_RESET_STRING "\rATZ\r"
 #define MODEM_RESET_RESPONSE "OK"
 #define MODEM_SEND_NUM_RETRIES 4
-#define MODEM_RECIEVE_TIMEOUT 5
+#define MODEM_RECIEVE_TIMEOUT 2
 #define TERMINAL_FILE_SEND_BUFFER_SIZE 1024
 
 extern PrinterFlags *config_printflags;
@@ -506,5 +506,18 @@ void terminal_send_clear_screen()
     case TERMINAL_TYPE_ATASCII:
       ser_put(0x7d);
       putchar(0x7d);
+    }
+}
+
+void terminal_beep()
+{
+  switch(terminal_type)
+    {
+    case TERMINAL_TYPE_ASCII:
+      ser_put(0x07);
+      putchar(0xfd);
+    case TERMINAL_TYPE_ATASCII:
+      ser_put(0xfd);
+      putchar(0xfd);
     }
 }

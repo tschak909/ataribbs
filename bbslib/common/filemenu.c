@@ -47,19 +47,26 @@ unsigned char filemenu_show(const char* filename)
   while (selected_item != 0x1b)
     {
       terminal_send_screen(filename);
-      // selected_item = terminal_show_prompt(prompt);
+      terminal_send("Select File to Display: [_]",0);
+      terminal_send_left();
+      terminal_send_left();
+      selected_item = terminal_get_char();
+
       for (i=0;i<num_entries;++i)
 	{
 	  if (menuentries[i]->item == selected_item)
 	    {
-	      // terminal_show_selection(menuentries[i]->itemName);
+	      terminal_send_right();
+	      terminal_send_right();
+	      terminal_send(menuentries[i]->itemName,0);
+	      terminal_send_eol();
 	      free(menuentries);
 	      return selected_item;
 	    }
 	}
       if (selected_item != 0x1b)
 	{
-	  // terminal_beep();
+	  terminal_beep();
 	}
     }
 }

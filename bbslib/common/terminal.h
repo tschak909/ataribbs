@@ -28,6 +28,7 @@ void terminal_send_down();
 void terminal_send_left();
 void terminal_send_right();
 void terminal_send_clear_screen();
+void terminal_beep();
 
 #define TERMINAL_PORT_OPEN 0
 #define TERMINAL_PORT_CLOSED 1

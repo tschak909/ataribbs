@@ -15,6 +15,7 @@
 #include <atari.h>
 #include <stdlib.h>
 #include <fcntl.h>
+#include <conio.h>
 
 #define DRIVERNAME "D1:ATRRDEV.SER"
 #define MODEM_RESET_STRING "\rATZ\r"
@@ -278,7 +279,14 @@ void terminal_hang_up()
 unsigned char terminal_get_char()
 {
   unsigned char c;
-  while (ser_get(&c) == SER_ERR_NO_DATA) { /* Put timer tick in here. */ }
+  while (ser_get(&c) == SER_ERR_NO_DATA) 
+    { /* Put timer tick in here. */ 
+      if (kbhit())
+	{
+	  terminal_flush();
+	  return cgetc();
+	}
+    }
    return c;
 }
 

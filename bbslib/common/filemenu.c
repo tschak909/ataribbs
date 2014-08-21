@@ -11,6 +11,14 @@
 #include "config.h"
 #include "util.h"
 
+unsigned char filemenu_item_index(char c)
+{
+  const char* filemenu_items="1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ"; // 36 entries.
+  char *e;
+  e = strchr(filemenu_items,c);
+  return (unsigned char)(e-filemenu_items);
+}
+
 unsigned char filemenu_show(const char* filename)
 {
   int menufd;

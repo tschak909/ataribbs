@@ -17,12 +17,18 @@ unsigned char filemenu_item_index(char c)
 {
   char *e;
   e = strchr(filemenu_items,c);
-  return (unsigned char)(e-filemenu_items);
+  if (!e)
+    {
+      return 255; // Guard value. Nothing matching.
+    }
+  else
+    return (unsigned char)(e-filemenu_items);
 }
 
 const char* stringOption(const char* prompt, const char* defaultOption)
 {
   char str[80];
+  char ret[80];
   printf("%s\n(default: %s):\n",prompt,defaultOption);
   fgets(str,80,stdin);
   if (str[0] == 0x9b)
@@ -33,8 +39,7 @@ const char* stringOption(const char* prompt, const char* defaultOption)
     }
   else
     {
-      char *ret;
-      ret = sscanf(str,"%s",ret);
+      sscanf(str,"%s",ret);
       return strdup(ret);
     }
 }
@@ -148,13 +153,17 @@ int fmenue_edit(int fd)
       num_entries = fmenue_load(fd,entries); // If it doesn't load, no big deal. 
     }
 
+
   while (key!=0x03) // ^C Exits.
     {
       fmenue_show_entries(entries);
-      printf("Select menu item [_]");
+      printf("Select menu item [_]%c%c",0x1e,0x1e);
       key=cgetc();
-      if (key!=0x03)
-	fmenue_edit_entry(key,entries[filemenu_item_index(key)]);
+      if (key!=0x03 && filemenu_item_index(key) != 255)
+	{
+	  printf("%c\n",key);
+	  fmenue_edit_entry(key,entries[filemenu_item_index(key)]);
+	}
     }
 
   for (i=0;i<37;++i)

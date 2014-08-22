@@ -243,6 +243,9 @@ int show_usage(char* argv[])
 
 int main(int argc, char* argv[])
 {
+
+  cursor(1);
+
   if (argc!=2)
     return show_usage(argv);
   else

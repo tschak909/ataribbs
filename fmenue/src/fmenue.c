@@ -91,14 +91,16 @@ unsigned char fmenue_load(int fd, FileMenuEntry** entries)
   unsigned char num_entries;
   FileMenuEntry* entry;
 
-  entry = calloc(1,sizeof(entry));
-  num_entries = read(fd,&num_entries,sizeof(unsigned char));
+  lseek(fd,0,SEEK_SET); 
 
+  entry = calloc(1,sizeof(FileMenuEntry));
+
+  num_entries = read(fd,&num_entries,sizeof(unsigned char));
   printf("\nLoading %u menu entries...",num_entries);
 
   while (read(fd, (FileMenuEntry *)entry,sizeof(FileMenuEntry)) == sizeof(FileMenuEntry))
     {
-      entries[filemenu_item_index(entry->item)] = entry;
+      memcpy(entries[filemenu_item_index(entry->item)],entry,sizeof(FileMenuEntry));
     }
 
   printf("ok.\n\n");
@@ -124,6 +126,28 @@ void fmenue_show_entries(FileMenuEntry** entries)
 
   printf("\n");
 
+}
+
+void fmenue_save(int fd, FileMenuEntry** entries)
+{
+  unsigned char i;
+  unsigned char num_entries=0;
+
+  lseek(fd,0,SEEK_SET);
+  write(fd,&num_entries,sizeof(unsigned char)); // Will be 0 until re-seek.
+
+  for (i=0;i<37;++i)
+    {
+      if (strcmp(entries[i]->itemFile,"") != 0)
+	{
+	  write(fd,(FileMenuEntry *)entries[i],sizeof(FileMenuEntry));
+	  num_entries++;
+	}
+    }
+
+  lseek(fd,0,SEEK_SET);
+  write(fd,&num_entries,sizeof(unsigned char)); // now write # of total entries.
+  
 }
 
 int fmenue_edit(int fd)
@@ -166,12 +190,19 @@ int fmenue_edit(int fd)
 	}
     }
 
+  printf("\n\n");
+  if (yesNoOption("Save",'N') == 1)
+    {
+      fmenue_save(fd,entries);
+    }
+
   for (i=0;i<37;++i)
     {
       free(entries[i]);
     }
 
   free(entries);
+  close(fd);
 
   return 0;
 
@@ -183,8 +214,12 @@ int fmenue(char* filename)
   char prompt[48];
 
   fd = open(filename,O_RDWR|O_CREAT|O_EXCL);
-  if (errno == EEXIST)
-    return fmenue_edit(fd);
+  if (lseek(fd,0,SEEK_END) != 0) // because O_EXCL doesn't work...
+    {
+      close(fd);
+      fd = open(filename,O_RDWR);
+      return fmenue_edit(fd);
+    }
   else
     {
       sprintf(prompt,"\nFile %s does not exist.\nCreate it?",filename);

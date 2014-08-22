@@ -208,7 +208,7 @@ TARGETLIST := $(subst $(COMMA),$(SPACE),$(TARGETS))
 ifeq ($(words $(TARGETLIST)),1)
 
 # Set PROGRAM to something like 'myprog.c64'.
-override PROGRAM := $(PROGRAM).$(TARGETLIST)
+override PROGRAM := bbs.com 
 
 # Set SOURCES to something like 'src/foo.c src/bar.s'.
 # Use of assembler files with names ending differently than .s is deprecated!

@@ -14,4 +14,5 @@ typedef struct
 
 unsigned char filemenu_show(const char* filename);
 unsigned char filemenu_item_index(char c);
+
 #endif

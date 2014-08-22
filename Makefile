@@ -11,3 +11,4 @@ all mostlyclean clean install zip:
 	@$(MAKE) -C bbslib    --no-print-directory $@
 	@$(MAKE) -C bbsconf   --no-print-directory $@
 	@$(MAKE) -C bbs       --no-print-directory $@
+	@$(MAKE) -C fmenue    --no-print-directory $@

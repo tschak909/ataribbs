@@ -21,5 +21,6 @@ unsigned char is_a_return(unsigned char c);
 unsigned char is_an_ascii_cr(unsigned char c);
 unsigned char is_an_atascii_eol(unsigned char c);
 unsigned short crc16(unsigned char* data_p, unsigned char length);
+char toupper(char c);
 
 #endif /* UTIL_H */

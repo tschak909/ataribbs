@@ -24,8 +24,7 @@ unsigned char filemenu_show(const char* filename)
 {
   int menufd;
   char itemFileWithExt[13];
-  char prompt[40];
-  char selected_item;
+  char selected_item=0;
   unsigned char num_entries;
   unsigned char i;
   FileMenuEntry** menuentries;
@@ -40,9 +39,9 @@ unsigned char filemenu_show(const char* filename)
     }
 
   read(menufd,&num_entries,sizeof(unsigned char));
-  read(menufd,&prompt,40);
 
-  menuentries = calloc(num_entries,sizeof(FileMenuEntry));
+  menuentries = calloc(num_entries,sizeof(FileMenuEntry *));
+
   if (!menuentries)
     {
       terminal_send("Could not allocate memory for menu.",0);
@@ -50,11 +49,18 @@ unsigned char filemenu_show(const char* filename)
       return 0x1b; // as if ESC were pressed.
     }
 
-  read(menufd,(FileMenuEntry *)menuentries, sizeof(FileMenuEntry)*num_entries);
+  for (i=0;i<num_entries;++i)
+    {
+      FileMenuEntry* entry = calloc(1,sizeof(FileMenuEntry));
+      read(menufd,(FileMenuEntry *)entry,sizeof(FileMenuEntry));
+      menuentries[i]=entry;
+    }
+
   close(menufd);
 
-  while (selected_item != 0x1b)
+  while (is_a_return(selected_item) == 0)
     {
+      terminal_send_eol();
       terminal_send_screen(filename);
       terminal_send("Select File to Display: [_]",0);
       terminal_send_left();
@@ -63,19 +69,28 @@ unsigned char filemenu_show(const char* filename)
 
       for (i=0;i<num_entries;++i)
 	{
-	  if (menuentries[i]->item == selected_item)
+	  if (menuentries[i]->item == toupper(selected_item))
 	    {
+	      terminal_send_char(menuentries[i]->item);
 	      terminal_send_right();
 	      terminal_send_right();
 	      terminal_send(menuentries[i]->itemName,0);
 	      terminal_send_eol();
-	      free(menuentries);
-	      return selected_item;
+	      terminal_send_eol();
+	      terminal_send_screen(menuentries[i]->itemFile);
 	    }
 	}
-      if (selected_item != 0x1b)
+      if (selected_item != 0x9b)
 	{
 	  terminal_beep();
 	}
     }
+
+  for (i=0;i<num_entries;++i)
+    {
+      free(menuentries[i]);
+    }
+
+  free(menuentries);
+
 }

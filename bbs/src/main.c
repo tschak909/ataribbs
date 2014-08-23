@@ -8,6 +8,7 @@
 #include "waitforcall.h"
 #include <bbslib/common/util.h>
 #include <bbslib/common/input.h>
+#include <bbslib/common/filemenu.h>
 
 PrinterFlags *config_printflags = NULL;
 SerialPortFlags *config_serialportflags = NULL; 
@@ -64,6 +65,9 @@ void bbs()
   terminal_send_eol();
   sprintf(logstring,"Login by %s",name);
   log(LOG_LEVEL_NOTICE,logstring);
+
+  filemenu_show("BULLETIN");
+
   terminal_send("Thanks for calling... ",0);
   terminal_send_eol();
   terminal_send("More will happen soon!",0);

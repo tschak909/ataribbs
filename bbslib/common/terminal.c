@@ -149,6 +149,12 @@ unsigned char terminal_init_modem()
   return terminal_send_and_expect_response(config_modemstrings->init_string,MODEM_RESET_RESPONSE,0);
 }
 
+void terminal_send_char(char c)
+{
+  ser_put(c);
+  putchar(c); // simple, for now...
+}
+
 unsigned char terminal_send(const char* sendString, unsigned char willEcho)
 {
   unsigned char res;

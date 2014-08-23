@@ -21,6 +21,7 @@ unsigned char terminal_get_and_echo(unsigned char i, unsigned char size, unsigne
 unsigned char terminal_get_and_echo_char(unsigned char i, unsigned char size, unsigned char c, unsigned char rubout);
 void terminal_send_eol();
 void terminal_determine_eol();
+void terminal_send_char(char c);
 void terminal_send_file(const char* filename);
 void terminal_send_screen(const char* filename);
 void terminal_send_up();

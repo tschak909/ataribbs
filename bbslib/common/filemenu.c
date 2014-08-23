@@ -80,10 +80,6 @@ unsigned char filemenu_show(const char* filename)
 	      terminal_send_screen(menuentries[i]->itemFile);
 	    }
 	}
-      if (selected_item != 0x9b)
-	{
-	  terminal_beep();
-	}
     }
 
   for (i=0;i<num_entries;++i)
@@ -92,5 +88,12 @@ unsigned char filemenu_show(const char* filename)
     }
 
   free(menuentries);
+
+  terminal_send_right();
+  terminal_send_right();
+  terminal_send_right();
+  terminal_send("Exit",0);
+  terminal_send_eol();
+  terminal_send_eol();
 
 }

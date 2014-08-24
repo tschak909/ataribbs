@@ -9,7 +9,14 @@
 #include <conio.h>
 #include <errno.h>
 #include <string.h>
-#include <bbslib/common/filemenu.h>
+#include <ctype.h>
+
+typedef struct
+{
+  char item;
+  char itemName[32];
+  char itemFile[17];
+} FileMenuEntry;
 
 const char* filemenu_items="1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ"; // 36 entries.
 
@@ -40,7 +47,7 @@ const char* stringOption(const char* prompt, const char* defaultOption)
   else
     {
       sscanf(str,"%s",ret);
-      return strdup(ret);
+      return strdup(strupper(ret));
     }
 }
 
@@ -182,7 +189,7 @@ int fmenue_edit(int fd)
     {
       fmenue_show_entries(entries);
       printf("Select menu item [_]%c%c",0x1e,0x1e);
-      key=cgetc();
+      key=toupper(cgetc());
       if (key!=0x03 && filemenu_item_index(key) != 255)
 	{
 	  printf("%c\n",key);

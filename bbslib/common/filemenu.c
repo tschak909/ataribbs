@@ -6,6 +6,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 #include "filemenu.h"
 #include "terminal.h"
 #include "config.h"

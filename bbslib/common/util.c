@@ -158,17 +158,3 @@ unsigned short crc16(unsigned char* data_p, unsigned char length){
     }
     return crc;
 }
-
-char toupper(char c)
-{
-  char c2;
-  
-  if(c >= 'a' && c <= 'z'){
-    c2 = ('A' + c - 'a');
-    return c2;
-  }
-  else{
-    c2 = c;
-    return c2;
-  }
-}

@@ -20,7 +20,7 @@ unsigned char filemenu_item_index(char c)
   return (unsigned char)(e-filemenu_items);
 }
 
-unsigned char filemenu_show(const char* filename)
+void filemenu_show(const char* filename)
 {
   int menufd;
   char itemFileWithExt[13];
@@ -35,7 +35,7 @@ unsigned char filemenu_show(const char* filename)
   if (menufd == -1)
     {
       printf("Could not open %s",itemFileWithExt);
-      return 0x1b; // as if ESC were pressed.
+      return; // as if ESC were pressed.
     }
 
   read(menufd,&num_entries,sizeof(unsigned char));
@@ -46,7 +46,7 @@ unsigned char filemenu_show(const char* filename)
     {
       terminal_send("Could not allocate memory for menu.",0);
       log(LOG_LEVEL_NOTICE,"Could not allocate memory for menu.");
-      return 0x1b; // as if ESC were pressed.
+      return; // as if ESC were pressed.
     }
 
   for (i=0;i<num_entries;++i)

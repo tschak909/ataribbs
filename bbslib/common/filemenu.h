@@ -12,7 +12,7 @@ typedef struct
   char itemFile[17];
 } FileMenuEntry;
 
-unsigned char filemenu_show(const char* filename);
+void filemenu_show(const char* filename);
 unsigned char filemenu_item_index(char c);
 
 #endif

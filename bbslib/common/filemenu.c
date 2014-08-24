@@ -58,13 +58,14 @@ void filemenu_show(const char* filename)
 
   close(menufd);
 
+  terminal_send_eol();
+  terminal_send_screen(filename);
+  terminal_send("Select File to Display: [_]",0);
+  terminal_send_left();
+  terminal_send_left();
+      
   while (is_a_return(selected_item) == 0)
     {
-      terminal_send_eol();
-      terminal_send_screen(filename);
-      terminal_send("Select File to Display: [_]",0);
-      terminal_send_left();
-      terminal_send_left();
       selected_item = terminal_get_char();
 
       for (i=0;i<num_entries;++i)
@@ -78,6 +79,16 @@ void filemenu_show(const char* filename)
 	      terminal_send_eol();
 	      terminal_send_eol();
 	      terminal_send_screen(menuentries[i]->itemFile);
+	      terminal_send_eol();
+	      terminal_send_screen(filename);
+	      terminal_send("Select File to Display: [_]",0);
+	      terminal_send_left();
+	      terminal_send_left();
+	    }
+	  else
+	    {
+	      if (is_a_return(selected_item) == 0)
+		terminal_beep();
 	    }
 	}
     }

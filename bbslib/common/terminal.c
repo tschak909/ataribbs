@@ -171,7 +171,7 @@ unsigned char terminal_send(const char* sendString, unsigned char willEcho)
 	}
       if (res == SER_ERR_OVERFLOW)
 	{
-	  // We're overflowing, wait a moment. 
+	  // We're overflowing, wait a moment.
 	  sleep(1);
 	  ser_put(sendString[i]);
 	}
@@ -392,7 +392,7 @@ void terminal_send_file(const char* filename)
 {
   int fd;
   size_t abr;
-  char *buf = malloc(TERMINAL_FILE_SEND_BUFFER_SIZE);
+  char *buf = calloc(1,TERMINAL_FILE_SEND_BUFFER_SIZE);
 
   if (!buf)
     {
@@ -406,9 +406,10 @@ void terminal_send_file(const char* filename)
   while (abr = read(fd,buf,TERMINAL_FILE_SEND_BUFFER_SIZE))
     {
       terminal_open_port();
-      buf[abr+1] = '\0';
+      buf[abr] = '\0';
       terminal_send(buf,0);
       terminal_close_port();
+      memset(buf,0,TERMINAL_FILE_SEND_BUFFER_SIZE); // Clear the buffer, prevent residual crapola.
     }
   free(buf);
   close(fd);

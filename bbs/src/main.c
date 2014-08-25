@@ -26,6 +26,7 @@ unsigned char run()
 
   while (bQuit==1)
     {
+      splash();
       terminal_init();
       res = waitforcall();
       switch(res)

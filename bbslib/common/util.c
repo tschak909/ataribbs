@@ -158,3 +158,32 @@ unsigned short crc16(unsigned char* data_p, unsigned char length){
     }
     return crc;
 }
+
+void splash()
+{
+  FILE* fp=fopen("D1:SPLASH.ATA","r");
+  char buf[128];
+  char i;
+  size_t abr;
+
+  printf("\n");
+
+  if (!fp)
+    {
+      perror("splash(): ");
+      fclose(fp);
+      return;
+    }
+
+  while (!feof(fp))
+    {
+      abr = fread(buf,sizeof(char),128,fp);
+      for (i=0;i<abr;++i)
+	{
+	  putchar(buf[i]);
+	}
+    }
+  
+  printf("\n");
+  fclose(fp);
+}

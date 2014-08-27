@@ -15,6 +15,12 @@ typedef struct
   char deleted;
 } MsgIDXEntry; 
 
+typedef struct
+{
+  int msgfd;
+  int idxfd;
+} MsgFile;
+
 // There isn't a message body entry struct. The message body file consists of 
 // repeated sets of:
 //

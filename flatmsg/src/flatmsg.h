@@ -33,4 +33,7 @@ void loremIpsum(unsigned char minWords, unsigned char maxWords,
 		unsigned char minSentences, unsigned char maxSentences,
 		unsigned char numParagraphs, char *output);
 
+MsgFile* msg_open(const char* msgfile);
+void msg_close(MsgFile* file);
+
 #endif /* FLATMSG_H */

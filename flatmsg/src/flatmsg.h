@@ -9,17 +9,24 @@ typedef struct
 {
   long msgId;
   long networkId;
-  int bodyHash;
   char from[64];
   char subject[64];
   char deleted;
-} MsgIDXEntry; 
+} MsgHeader; 
 
 typedef struct
 {
   int msgfd;
+  int hdrfd;
   int idxfd;
 } MsgFile;
+
+typedef struct
+{
+  long msgId;
+  long hdrOffset;
+  long bodyOffset;
+} MsgIdxEntry;
 
 // There isn't a message body entry struct. The message body file consists of 
 // repeated sets of:
@@ -28,10 +35,6 @@ typedef struct
 // X bytes: message body
 // ...
 // And the next one...
-
-void loremIpsum(unsigned char minWords, unsigned char maxWords,
-		unsigned char minSentences, unsigned char maxSentences,
-		unsigned char numParagraphs, char *output);
 
 MsgFile* msg_open(const char* msgfile);
 void msg_close(MsgFile* file);

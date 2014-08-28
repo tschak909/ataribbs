@@ -113,8 +113,8 @@ void msg_close(MsgFile* file)
 long _put_num_msgs(MsgFile* file, long nummsgs)
 {
   assert(file!=NULL);
-  lseek(file->hdrfd,0,SEEK_SET);
-  write(file->hdrfd,&nummsgs,sizeof(long));
+  lseek(file->idxfd,0,SEEK_SET);
+  write(file->idxfd,&nummsgs,sizeof(long));
   return nummsgs;
 }
 
@@ -125,13 +125,13 @@ long _get_num_msgs(MsgFile* file)
 
   assert(file!=NULL);
   
-  curPos=lseek(file->hdrfd,0,SEEK_END);
+  curPos=lseek(file->idxfd,0,SEEK_END);
   
   if (curPos!=0)
     {
-      lseek(file->hdrfd,0,SEEK_SET);
-      assert(read(file->hdrfd,&nummsgs,sizeof(long)) == sizeof(long));
-      lseek(file->hdrfd,0,SEEK_END);
+      lseek(file->idxfd,0,SEEK_SET);
+      assert(read(file->idxfd,&nummsgs,sizeof(long)) == sizeof(long));
+      lseek(file->idxfd,0,SEEK_END);
     }
   else
     {
@@ -174,6 +174,27 @@ unsigned char msg_put(MsgFile* file, MsgHeader* entry, char* body)
   _put_num_msgs(file,nummsgs);
 
   return 0;
+
+}
+
+void _msg_rewind(MsgFile* file)
+{
+  assert(file!=NULL);
+
+  lseek(file->msgfd,0,SEEK_SET);
+  lseek(file->hdrfd,0,SEEK_SET);
+  lseek(file->idxfd,0,SEEK_SET);
+}
+
+unsigned char msg_get(MsgFile* file, long msgId, MsgHeader* header, char* body)
+{
+  assert(file!=NULL);
+  assert(header!=NULL);
+  assert(body!=NULL);
+
+  _msg_rewind(file);
+
+  
 
 }
 
@@ -220,7 +241,7 @@ int main(int argc, char* argv[])
       memset(body,0,8192);
       _randomName(name);
       strcpy(entry->from,name);
-      strcpy(entry->subject,"Test Message");
+      sprintf(entry->subject,"Test Message %u",i);
       entry->msgId=0;
       _loremIpsum(3,10,2,10,8,body);
       printf("W: #: %u F: %s L: %u\n",i,name,strlen(body));

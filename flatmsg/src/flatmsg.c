@@ -188,13 +188,31 @@ void _msg_rewind(MsgFile* file)
 
 unsigned char msg_get(MsgFile* file, long msgId, MsgHeader* header, char* body)
 {
+  long nummsgs;
+  size_t bodySize;
+  MsgIdxEntry idx;
+
   assert(file!=NULL);
-  assert(header!=NULL);
-  assert(body!=NULL);
+
+  nummsgs = _get_num_msgs(file);
 
   _msg_rewind(file);
 
+  assert(msgId < nummsgs);
+
+  lseek(file->idxfd,sizeof(MsgIdxEntry)*msgId,SEEK_SET);
+  read(file->idxfd,&idx,sizeof(MsgIdxEntry));
+  lseek(file->hdrfd,idx.hdrOffset,SEEK_SET);
+  header = malloc(sizeof(MsgHeader));
+  assert(header!=NULL);
+  read(file->hdrfd,(MsgHeader *)header,sizeof(MsgHeader));
+  lseek(file->msgfd,idx.bodyOffset,SEEK_SET);
+  read(file->msgfd,&bodySize,sizeof(size_t));
+  body = malloc(bodySize);
+  assert(body!=NULL);
+  read(file->msgfd,(char *)body,bodySize);
   
+  return msgId;
 
 }
 

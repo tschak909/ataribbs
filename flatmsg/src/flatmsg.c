@@ -146,22 +146,24 @@ unsigned char msg_put(MsgFile* file, MsgHeader* entry, char* body)
   long nummsgs;
   long msgcurPos,hdrcurPos,idxcurPos;
   size_t bodylen;
-  MsgIdxEntry idx;
+  MsgIdxEntry* idx;
 
   assert(file!=NULL);
   assert(entry!=NULL);
   assert(body!=NULL);
   assert(entry->msgId==0);
  
+  idx = calloc(1,sizeof(MsgHeader));
+
   nummsgs = _get_num_msgs(file);
   nummsgs++;
   hdrcurPos = lseek(file->hdrfd,SEEK_END,0);
   msgcurPos = lseek(file->msgfd,SEEK_END,0);
   idxcurPos = lseek(file->idxfd,SEEK_END,0);
 
-  idx.msgId = nummsgs;
-  idx.bodyOffset = msgcurPos;
-  idx.hdrOffset = hdrcurPos;
+  idx->msgId = nummsgs;
+  idx->bodyOffset = msgcurPos;
+  idx->hdrOffset = hdrcurPos;
   
   entry->msgId = nummsgs;
 
@@ -170,8 +172,10 @@ unsigned char msg_put(MsgFile* file, MsgHeader* entry, char* body)
   write(file->hdrfd,(MsgHeader *)entry,sizeof(MsgHeader));
   write(file->msgfd,&bodylen,sizeof(size_t));
   write(file->msgfd,(char *)body,strlen(body));  
-  write(file->idxfd,&entry,sizeof(MsgIdxEntry));
+  write(file->idxfd,(MsgIdxEntry *)idx,sizeof(MsgIdxEntry));
   _put_num_msgs(file,nummsgs);
+
+  free(idx);
 
   return 0;
 
@@ -203,12 +207,11 @@ unsigned char msg_get(MsgFile* file, long msgId, MsgHeader* header, char* body)
   lseek(file->idxfd,sizeof(MsgIdxEntry)*msgId,SEEK_SET);
   read(file->idxfd,&idx,sizeof(MsgIdxEntry));
   lseek(file->hdrfd,idx.hdrOffset,SEEK_SET);
-  header = malloc(sizeof(MsgHeader));
   assert(header!=NULL);
   read(file->hdrfd,(MsgHeader *)header,sizeof(MsgHeader));
+
   lseek(file->msgfd,idx.bodyOffset,SEEK_SET);
   read(file->msgfd,&bodySize,sizeof(size_t));
-  body = malloc(bodySize);
   assert(body!=NULL);
   read(file->msgfd,(char *)body,bodySize);
   
@@ -241,7 +244,7 @@ int main(int argc, char* argv[])
   free(output);
   */
 
-  MsgFile *file;
+  /* MsgFile *file;
   MsgHeader *entry;
   unsigned char i;
   char* name;
@@ -266,6 +269,61 @@ int main(int argc, char* argv[])
       msg_put(file,entry,body);
     }
 
+  msg_close(file);
+  */
+
+  /* MsgFile* file;
+  MsgHeader* header;
+  char* body;
+  long nummsgs;
+  size_t i;
+
+  file = msg_open("D1:MSGTEST");
+  nummsgs = _get_num_msgs(file);
+  header=malloc(sizeof(MsgHeader));
+  body=malloc(8192);
+  if (!body)
+    {
+      perror("malloc body failed.");
+      return 1;
+    }
+  msg_get(file,2,header,body);
+  
+  printf("\n\n");
+  printf("Message #%u of %u\n",header->msgId,nummsgs);
+  printf("Network ID: %u\n",header->networkId);
+  printf("From: %s\n",header->from);
+  printf("Subject: %s\n",header->subject);
+  printf("Body length: %u",strlen(body));
+  printf("\n\n");
+
+  free(header);
+  free(body);
+
+  msg_close(file);
+  */
+
+  MsgFile *file;
+  MsgIdxEntry idx;
+  long nummsgs;
+  long i;
+  
+  file = msg_open("D1:MSGTEST");
+
+  read(file->idxfd,&nummsgs,sizeof(long));
+
+  printf("%lu total messages in index.\n",nummsgs);
+
+  for (i=0;i<2;++i)
+    {
+      read(file->idxfd,&idx,sizeof(MsgIdxEntry));
+      printf("Message %lu of %lu\n",i,nummsgs);
+      printf("Msg ID: %lu\n",idx.msgId);
+      printf("Header Offset: %lu\n",idx.hdrOffset);
+      printf("Body Offset: %lu\n",idx.bodyOffset);
+      printf("\n\n");
+    }
+  
   msg_close(file);
 
   return 0;

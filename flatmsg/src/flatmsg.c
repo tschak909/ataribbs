@@ -237,6 +237,7 @@ int main(int argc, char* argv[])
   for (i=0;i<20;++i)
     {
       memset(output,0,50);
+
       randomName(output);
       printf("%s \n",output);
     }
@@ -244,7 +245,7 @@ int main(int argc, char* argv[])
   free(output);
   */
 
-  /* MsgFile *file;
+  MsgFile *file;
   MsgHeader *entry;
   unsigned char i;
   char* name;
@@ -256,7 +257,7 @@ int main(int argc, char* argv[])
   name = calloc(1,50);
   body = calloc(1,8192);
 
-  for (i=0;i<255;++i)
+  for (i=0;i<2;++i)
     {
       memset(name,0,50);
       memset(body,0,8192);
@@ -270,7 +271,7 @@ int main(int argc, char* argv[])
     }
 
   msg_close(file);
-  */
+  
 
   /* MsgFile* file;
   MsgHeader* header;
@@ -303,11 +304,14 @@ int main(int argc, char* argv[])
   msg_close(file);
   */
 
-  MsgFile *file;
-  MsgIdxEntry idx;
+  
+  /* MsgFile *file;
+  MsgIdxEntry* idx;
   long nummsgs;
   long i;
   
+  idx = calloc(1,sizeof(MsgIdxEntry));
+
   file = msg_open("D1:MSGTEST");
 
   read(file->idxfd,&nummsgs,sizeof(long));
@@ -316,15 +320,17 @@ int main(int argc, char* argv[])
 
   for (i=0;i<2;++i)
     {
-      read(file->idxfd,&idx,sizeof(MsgIdxEntry));
+      read(file->idxfd,(MsgIdxEntry *)idx,sizeof(MsgIdxEntry));
       printf("Message %lu of %lu\n",i,nummsgs);
-      printf("Msg ID: %lu\n",idx.msgId);
-      printf("Header Offset: %lu\n",idx.hdrOffset);
-      printf("Body Offset: %lu\n",idx.bodyOffset);
+      printf("Msg ID: %lu\n",idx->msgId);
+      printf("Header Offset: %lu\n",idx->hdrOffset);
+      printf("Body Offset: %lu\n",idx->bodyOffset);
       printf("\n\n");
     }
   
+  free(idx);
   msg_close(file);
 
   return 0;
+  */
 }

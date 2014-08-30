@@ -63,25 +63,24 @@ void _randomName(char* output)
   strcat(output,last[rand() % 15]);
 }
 
+int _msg_open(const char* msgfile, const char* extension)
+{
+  char tmp[32];
+  strcpy(tmp,msgfile);
+  strcat(tmp,extension);
+
+  return open(tmp,O_CREAT|O_RDWR);
+}
+
 MsgFile* msg_open(const char* msgfile)
 {
-  char hdrpath[32];
-  char msgpath[32];
-  char idxpath[32];
   MsgFile *file;
 
   file = calloc(1,sizeof(MsgFile));
 
-  strcpy(hdrpath,msgfile);
-  strcpy(msgpath,msgfile);
-  strcpy(idxpath,msgfile);
-  strcat(hdrpath,".HDR");
-  strcat(msgpath,".MSG");
-  strcat(idxpath,".IDX");
-
-  file->hdrfd = open(hdrpath,O_CREAT|O_RDWR);
-  file->msgfd = open(msgpath,O_CREAT|O_RDWR);
-  file->idxfd = open(idxpath,O_CREAT|O_RDWR);
+  file->hdrfd = _msg_open(msgfile,".HDR");
+  file->msgfd = _msg_open(msgfile,".MSG");
+  file->idxfd = _msg_open(msgfile,".IDX");
   
   if (file->hdrfd < 0)
     return NULL;
@@ -131,7 +130,6 @@ long _get_num_msgs(MsgFile* file)
     {
       lseek(file->idxfd,0,SEEK_SET);
       assert(read(file->idxfd,&nummsgs,sizeof(long)) == sizeof(long));
-      lseek(file->idxfd,0,SEEK_END);
     }
   else
     {
@@ -245,6 +243,7 @@ int main(int argc, char* argv[])
   free(output);
   */
 
+  /*
   MsgFile *file;
   MsgHeader *entry;
   unsigned char i;
@@ -272,6 +271,7 @@ int main(int argc, char* argv[])
 
   msg_close(file);
   
+  */
 
   /* MsgFile* file;
   MsgHeader* header;
@@ -305,22 +305,26 @@ int main(int argc, char* argv[])
   */
 
   
-  /* MsgFile *file;
+  MsgFile *file;
   MsgIdxEntry* idx;
   long nummsgs;
   long i;
+  size_t abr;
   
   idx = calloc(1,sizeof(MsgIdxEntry));
 
   file = msg_open("D1:MSGTEST");
 
-  read(file->idxfd,&nummsgs,sizeof(long));
+  abr = read(file->idxfd,&nummsgs,sizeof(long));
+
+  printf("abr: %u\n",abr);
 
   printf("%lu total messages in index.\n",nummsgs);
 
   for (i=0;i<2;++i)
     {
-      read(file->idxfd,(MsgIdxEntry *)idx,sizeof(MsgIdxEntry));
+      abr = read(file->idxfd,(MsgIdxEntry *)idx,sizeof(MsgIdxEntry));
+      printf("abr: %u\n",abr);
       printf("Message %lu of %lu\n",i,nummsgs);
       printf("Msg ID: %lu\n",idx->msgId);
       printf("Header Offset: %lu\n",idx->hdrOffset);
@@ -332,5 +336,5 @@ int main(int argc, char* argv[])
   msg_close(file);
 
   return 0;
-  */
+  
 }

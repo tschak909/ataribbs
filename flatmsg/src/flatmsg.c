@@ -164,10 +164,10 @@ void _msg_write_body(MsgFile* file, char* body)
 void _msg_write_header(MsgFile* file, MsgHeader* header)
 {
   assert(file!=NULL);
-  assert(file->idxfd>0);
+  assert(file->hdrfd>0);
   assert(header!=NULL);
-  lseek(file->idxfd,0,SEEK_END);
-  write(file->idxfd,(MsgHeader *)header,sizeof(MsgHeader));
+  lseek(file->hdrfd,0,SEEK_END);
+  write(file->hdrfd,(MsgHeader *)header,sizeof(MsgHeader));
 }
 
 unsigned char msg_put(MsgFile* file, MsgHeader* header, char* body)
@@ -182,9 +182,9 @@ unsigned char msg_put(MsgFile* file, MsgHeader* header, char* body)
 
   nummsgs = _get_num_msgs(file);
   nummsgs++;
-  hdrcurPos = lseek(file->hdrfd,SEEK_END,0);
-  msgcurPos = lseek(file->msgfd,SEEK_END,0);
-  idxcurPos = lseek(file->idxfd,SEEK_END,0);
+  hdrcurPos = lseek(file->hdrfd,0,SEEK_END);
+  msgcurPos = lseek(file->msgfd,0,SEEK_END);
+  idxcurPos = lseek(file->idxfd,0,SEEK_END);
 
   /* fill out the index record */
   idx.msgId = nummsgs;
@@ -198,6 +198,8 @@ unsigned char msg_put(MsgFile* file, MsgHeader* header, char* body)
 
   /** Finally, write the body. */
   _msg_write_body(file,body);
+
+  _put_num_msgs(file,nummsgs);
 
   return 0;
 
@@ -222,11 +224,9 @@ unsigned char msg_get(MsgFile* file, long msgId, MsgHeader* header, char* body)
 
   nummsgs = _get_num_msgs(file);
 
-  _msg_rewind(file);
-
   assert(msgId < nummsgs);
 
-  lseek(file->idxfd,sizeof(MsgIdxEntry)*msgId,SEEK_SET);
+  lseek(file->idxfd,sizeof(MsgIdxEntry)*msgId+sizeof(long),SEEK_SET);
   read(file->idxfd,&idx,sizeof(MsgIdxEntry));
   lseek(file->hdrfd,idx.hdrOffset,SEEK_SET);
   assert(header!=NULL);
@@ -280,7 +280,7 @@ int main(int argc, char* argv[])
   name = calloc(1,50);
   body = calloc(1,8192);
 
-  for (i=0;i<2;++i)
+  for (i=0;i<1;++i)
     {
       memset(name,0,50);
       memset(body,0,8192);
@@ -294,10 +294,11 @@ int main(int argc, char* argv[])
     }
 
   msg_close(file);
-  
+
+  return 0;
   */
 
-  /* MsgFile* file;
+  MsgFile* file;
   MsgHeader* header;
   char* body;
   long nummsgs;
@@ -326,8 +327,8 @@ int main(int argc, char* argv[])
   free(body);
 
   msg_close(file);
-  */
-
+  
+  return 0;
   
   /*MsgFile *file;
   MsgIdxEntry* idx;
@@ -362,16 +363,5 @@ int main(int argc, char* argv[])
   return 0;
  
   */
-
-  MsgFile *file;
-  long nummsgs;
-
-  file = msg_open("D1:MSGTEST");
-
-  nummsgs = _get_num_msgs(file);
-
-  msg_close(file);
-
-  return 0;
 
 }

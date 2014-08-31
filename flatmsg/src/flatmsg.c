@@ -11,6 +11,7 @@
 #include <unistd.h>
 #include <time.h>
 #include <assert.h>
+#include "header.h"
 
 void _loremIpsum(unsigned char minWords, unsigned char maxWords,
 	       unsigned char minSentences, unsigned char maxSentences,
@@ -285,7 +286,7 @@ int main(int argc, char* argv[])
   name = calloc(1,50);
   body = calloc(1,8192);
 
-  for (i=0;i<1;++i)
+  for (i=0;i<255;++i)
     {
       memset(name,0,50);
       memset(body,0,8192);
@@ -302,12 +303,13 @@ int main(int argc, char* argv[])
 
   return 0;
   */
-
-  MsgFile* file;
+  
+  /* MsgFile* file;
   MsgHeader* header;
   char* body;
   long nummsgs;
   size_t i;
+  clock_t b,e,d;
 
   file = msg_open("D1:MSGTEST");
   nummsgs = _get_num_msgs(file);
@@ -319,9 +321,13 @@ int main(int argc, char* argv[])
       return 1;
     }
 
+  printf("Loading all messages...");
+
+  b = clock();
+
   for (i=0;i<nummsgs;++i)
     {
-      memset(body,0,8192);
+      // memset(body,0,8192);
       msg_get(file,i,header,body);
       
       printf("\n\n");
@@ -332,13 +338,20 @@ int main(int argc, char* argv[])
       printf("Body length: %u",strlen(body));
       printf("\n\n");
     }
+
+  e = clock();
+  d = (e-b) / CLOCKS_PER_SEC;
+
+  printf("time spent: %lu sec.\n",d);
+
   free(header);
   free(body);
 
   msg_close(file);
   
   return 0;
-  
+  */
+
   /*MsgFile *file;
   MsgIdxEntry* idx;
   long nummsgs;
@@ -372,5 +385,31 @@ int main(int argc, char* argv[])
   return 0;
  
   */
+
+  MsgFile* file = msg_open("D1:MSGTEST");
+  long nummsgs = _get_num_msgs(file);
+  HeaderCursor cursor = header_quickscan_begin(file,0);
+  MsgHeader header;
+  unsigned char i;
+  clock_t b, e, d;
+  
+  printf("Doing quickscan of all messages...");
+
+  b=clock();
+
+  for (i=0;i<nummsgs;++i)
+    {
+      cursor=header_quickscan_next(file,cursor,&header);
+    }
+
+  header_quickscan_end(file);
+
+  e=clock();
+
+  d=(e-b) / CLOCKS_PER_SEC;
+
+  printf("quickscan took: %lu secs.\n",d);
+
+  return 0;
 
 }

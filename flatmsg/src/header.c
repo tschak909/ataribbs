@@ -10,9 +10,10 @@
 #include <unistd.h>
 #include <time.h>
 #include <assert.h>
+#include "types.h"
 #include "header.h"
 
-long _header_offset(long msgId)
+long header_offset(long msgId)
 {
   return sizeof(MsgHeader) * msgId;
 }
@@ -22,7 +23,7 @@ HeaderCursor header_scan_begin(MsgFile* file, long msgId)
   assert(file!=NULL);
   assert(file->hdrfd>0);
 
-  return lseek(file->hdrfd,_header_offset(msgId),SEEK_SET);
+  return lseek(file->hdrfd,header_offset(msgId),SEEK_SET);
 }
 
 HeaderCursor header_scan_next(MsgFile* file, HeaderCursor cursor, MsgHeader* header)
@@ -70,4 +71,14 @@ HeaderCursor header_scan_find_network_id(MsgFile* file, HeaderCursor cursor, lon
 void header_scan_end(MsgFile* file)
 {
   // This currently doesn't do anything, Not yet.
+  file; // To get rid of warning for now.
+}
+
+void header_write(MsgFile* file, MsgHeader* header)
+{
+  assert(file!=NULL);
+  assert(file->hdrfd>0);
+  assert(header!=NULL);
+  lseek(file->hdrfd,0,SEEK_END);
+  write(file->hdrfd,(MsgHeader *)header,sizeof(MsgHeader));
 }

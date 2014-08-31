@@ -11,7 +11,6 @@
 #include <unistd.h>
 #include <time.h>
 #include <assert.h>
-#include "header.h"
 
 void _loremIpsum(unsigned char minWords, unsigned char maxWords,
 	       unsigned char minSentences, unsigned char maxSentences,
@@ -62,189 +61,6 @@ void _randomName(char* output)
   strcat(output,first[rand() % 17]);
   strcat(output," ");
   strcat(output,last[rand() % 15]);
-}
-
-int _msg_open(const char* msgfile, const char* extension)
-{
-  char tmp[32];
-  strcpy(tmp,msgfile);
-  strcat(tmp,extension);
-
-  return open(tmp,O_CREAT|O_RDWR);
-}
-
-MsgFile* msg_open(const char* msgfile)
-{
-  MsgFile *file;
-
-  file = calloc(1,sizeof(MsgFile));
-
-  file->hdrfd = _msg_open(msgfile,".HDR");
-  file->msgfd = _msg_open(msgfile,".MSG");
-  file->idxfd = _msg_open(msgfile,".IDX");
-  
-  if (file->hdrfd < 0)
-    return NULL;
-
-  if (file->msgfd < 0)
-    return NULL;
-
-  if (file->idxfd < 0)
-    return NULL;
-
-  return file;
-
-}
-
-void msg_close(MsgFile* file)
-{
-  assert(file!=NULL);
-  assert(file->msgfd > 0);
-  assert(file->hdrfd > 0);
-  assert(file->idxfd > 0);
-
-  close(file->msgfd);
-  close(file->hdrfd);
-  close(file->idxfd);
-
-  free(file);
-}
-
-long _put_num_msgs(MsgFile* file, long nummsgs)
-{
-  assert(file!=NULL);
-  lseek(file->idxfd,0,SEEK_SET);
-  write(file->idxfd,&nummsgs,sizeof(long));
-  return nummsgs;
-}
-
-long _get_num_msgs(MsgFile* file)
-{
-  long curPos;
-  long nummsgs;
-
-  assert(file!=NULL);
-  
-  curPos=lseek(file->idxfd,0,SEEK_END);
-  
-  if (curPos!=0)
-    {
-      lseek(file->idxfd,0,SEEK_SET);
-      assert(read(file->idxfd,&nummsgs,sizeof(long)) == sizeof(long));
-    }
-  else
-    {
-      nummsgs = _put_num_msgs(file,0);
-    }
-
-  return nummsgs;
-}
-
-void _msg_write_idx(MsgFile* file, MsgIdxEntry* idx)
-{
-  assert(file!=NULL);
-  assert(file->idxfd>0);
-  assert(idx!=NULL);
-  lseek(file->idxfd,0,SEEK_END);
-  write(file->idxfd,(MsgIdxEntry *)idx,sizeof(MsgIdxEntry));
-}
-
-void _msg_write_body(MsgFile* file, char* body)
-{
-  size_t len;
-  assert(file!=NULL);
-  assert(file->msgfd>0);
-  assert(body!=NULL);
-  len=strlen(body);
-  lseek(file->msgfd,0,SEEK_END);
-  write(file->msgfd,&len,sizeof(size_t));
-  write(file->msgfd,(char *)body,len);
-}
-
-
-void _msg_write_header(MsgFile* file, MsgHeader* header)
-{
-  assert(file!=NULL);
-  assert(file->hdrfd>0);
-  assert(header!=NULL);
-  lseek(file->hdrfd,0,SEEK_END);
-  write(file->hdrfd,(MsgHeader *)header,sizeof(MsgHeader));
-}
-
-unsigned char msg_put(MsgFile* file, MsgHeader* header, char* body)
-{
-  MsgIdxEntry idx;
-  long nummsgs,hdrcurPos,idxcurPos,msgcurPos;
-   
-  assert(file!=NULL);
-  assert(header!=NULL);
-  assert(body!=NULL);
-  assert(header->msgId==0);
-
-  nummsgs = _get_num_msgs(file);
-  nummsgs++;
-  hdrcurPos = lseek(file->hdrfd,0,SEEK_END);
-  msgcurPos = lseek(file->msgfd,0,SEEK_END);
-  idxcurPos = lseek(file->idxfd,0,SEEK_END);
-
-  /* fill out the index record */
-  idx.msgId = nummsgs;
-  idx.bodyOffset = msgcurPos;
-  idx.hdrOffset = hdrcurPos;
-  _msg_write_idx(file,&idx);
-  
-  /* fill out the rest of the header. */
-  header->msgId = nummsgs;
-  _msg_write_header(file,header);
-
-  /** Finally, write the body. */
-  _msg_write_body(file,body);
-
-  _put_num_msgs(file,nummsgs);
-
-  return 0;
-
-}
-
-void _msg_rewind(MsgFile* file)
-{
-  assert(file!=NULL);
-
-  lseek(file->msgfd,0,SEEK_SET);
-  lseek(file->hdrfd,0,SEEK_SET);
-  lseek(file->idxfd,0,SEEK_SET);
-}
-
-long _msg_idx_offset(long msgId)
-{
-  return sizeof(MsgIdxEntry)*msgId+sizeof(long);
-}
-
-unsigned char msg_get(MsgFile* file, long msgId, MsgHeader* header, char* body)
-{
-  long nummsgs;
-  size_t bodySize;
-  MsgIdxEntry idx;
-
-  assert(file!=NULL);
-
-  nummsgs = _get_num_msgs(file);
-
-  assert(msgId < nummsgs);
-
-  lseek(file->idxfd,_msg_idx_offset(msgId),SEEK_SET);
-  read(file->idxfd,&idx,sizeof(MsgIdxEntry));
-  lseek(file->hdrfd,idx.hdrOffset,SEEK_SET);
-  assert(header!=NULL);
-  read(file->hdrfd,(MsgHeader *)header,sizeof(MsgHeader));
-
-  lseek(file->msgfd,idx.bodyOffset,SEEK_SET);
-  read(file->msgfd,&bodySize,sizeof(size_t));
-  assert(body!=NULL);
-  read(file->msgfd,(char *)body,bodySize);
-  
-  return msgId;
-
 }
 
 int main(int argc, char* argv[])
@@ -386,6 +202,7 @@ int main(int argc, char* argv[])
  
   */
 
+  /*
   MsgFile* file = msg_open("D1:MSGTEST");
   long nummsgs = _get_num_msgs(file);
   HeaderCursor cursor = header_scan_begin(file,0);
@@ -409,6 +226,9 @@ int main(int argc, char* argv[])
   d=(e-b) / CLOCKS_PER_SEC;
 
   printf("quickscan took: %lu secs.\n",d);
+
+  return 0;
+  */
 
   return 0;
 

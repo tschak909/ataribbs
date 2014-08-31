@@ -214,6 +214,11 @@ void _msg_rewind(MsgFile* file)
   lseek(file->idxfd,0,SEEK_SET);
 }
 
+long _msg_idx_offset(long msgId)
+{
+  return sizeof(MsgIdxEntry)*msgId+sizeof(long);
+}
+
 unsigned char msg_get(MsgFile* file, long msgId, MsgHeader* header, char* body)
 {
   long nummsgs;
@@ -226,7 +231,7 @@ unsigned char msg_get(MsgFile* file, long msgId, MsgHeader* header, char* body)
 
   assert(msgId < nummsgs);
 
-  lseek(file->idxfd,sizeof(MsgIdxEntry)*msgId+sizeof(long),SEEK_SET);
+  lseek(file->idxfd,_msg_idx_offset(msgId),SEEK_SET);
   read(file->idxfd,&idx,sizeof(MsgIdxEntry));
   lseek(file->hdrfd,idx.hdrOffset,SEEK_SET);
   assert(header!=NULL);
@@ -313,16 +318,20 @@ int main(int argc, char* argv[])
       perror("malloc body failed.");
       return 1;
     }
-  msg_get(file,2,header,body);
-  
-  printf("\n\n");
-  printf("Message #%u of %u\n",header->msgId,nummsgs);
-  printf("Network ID: %u\n",header->networkId);
-  printf("From: %s\n",header->from);
-  printf("Subject: %s\n",header->subject);
-  printf("Body length: %u",strlen(body));
-  printf("\n\n");
 
+  for (i=0;i<nummsgs;++i)
+    {
+      memset(body,0,8192);
+      msg_get(file,i,header,body);
+      
+      printf("\n\n");
+      printf("Message #%lu of %lu\n",header->msgId,nummsgs);
+      printf("Network ID: %lu\n",header->networkId);
+      printf("From: %s\n",header->from);
+      printf("Subject: %s\n",header->subject);
+      printf("Body length: %u",strlen(body));
+      printf("\n\n");
+    }
   free(header);
   free(body);
 

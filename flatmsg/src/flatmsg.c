@@ -388,7 +388,7 @@ int main(int argc, char* argv[])
 
   MsgFile* file = msg_open("D1:MSGTEST");
   long nummsgs = _get_num_msgs(file);
-  HeaderCursor cursor = header_quickscan_begin(file,0);
+  HeaderCursor cursor = header_scan_begin(file,0);
   MsgHeader header;
   unsigned char i;
   clock_t b, e, d;
@@ -397,12 +397,12 @@ int main(int argc, char* argv[])
 
   b=clock();
 
-  for (i=0;i<nummsgs;++i)
+  while ((cursor=header_scan_find_network_id(file,cursor,0,&header)) != -1)
     {
-      cursor=header_quickscan_next(file,cursor,&header);
+      printf("M#: %lu - From: %s",header.msgId,header.from);
     }
 
-  header_quickscan_end(file);
+  header_scan_end(file);
 
   e=clock();
 

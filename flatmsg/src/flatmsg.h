@@ -6,6 +6,7 @@
 #define FLATMSG_H
 
 
+
 // There isn't a message body entry struct. The message body file consists of 
 // repeated sets of:
 //

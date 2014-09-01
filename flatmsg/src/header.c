@@ -51,6 +51,24 @@ HeaderCursor header_scan_find_from(MsgFile* file, HeaderCursor cursor, const cha
   return -1;
 }
 
+HeaderCursor header_scan_find_subject(MsgFile* file, HeaderCursor cursor, const char* subject, MsgHeader* header)
+{
+  assert(file!=NULL);
+  assert(file->hdrfd>0);
+  assert(subject!=NULL);
+  while ((cursor=read(file->hdrfd,(MsgHeader *)header,sizeof(MsgHeader))) == sizeof(MsgHeader))
+    {
+      if (stricmp(subject,header->subject) == 0)
+	{
+	  // search successful
+	  return cursor;
+	}
+    }
+
+  // Search failed, reset to beginning.
+  return -1;
+}
+
 HeaderCursor header_scan_find_network_id(MsgFile* file, HeaderCursor cursor, long networkId, MsgHeader* header)
 {
   assert(file!=NULL);

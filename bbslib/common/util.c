@@ -12,6 +12,8 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <string.h>
+#include <6502.h>
+#include <assert.h>
 
 #define LOG_FORMAT "%s - %s - %s\n"
 #define LOG_FILE "D1:SYSTEM.LOG"
@@ -186,4 +188,22 @@ void splash()
   
   printf("\n");
   fclose(fp);
+}
+
+void timedate(TimeDate* td)
+{
+  struct regs r;
+  assert(td!=NULL);
+  r.pc = 0x703; // KERNEL
+  r.y = 100;    // GETTD
+  _sys(&r);     // Do Kernel Call.
+
+  td->day     = *(byte*) 0x77B;
+  td->month   = *(byte*) 0x77C;
+  td->year    = *(byte*) 0x77D;
+  td->hours   = *(byte*) 0x77E;
+  td->minutes = *(byte*) 0x77F;
+  td->seconds = *(byte*) 0x780;
+
+  return;
 }

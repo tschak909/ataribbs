@@ -81,6 +81,7 @@ void bbs()
 unsigned char main(void)
 {
   int retCode = 0;
+
   retCode = init();
   if (retCode != 0)
     {

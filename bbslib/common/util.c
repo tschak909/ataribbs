@@ -46,6 +46,7 @@ void log(char level, const char* msg)
   int printer;
   int logFile;
   char* logstring;
+  TimeDate td;
   logstring = calloc(256,sizeof(char));
   if (!logstring)
     {
@@ -53,13 +54,13 @@ void log(char level, const char* msg)
     }
 
   terminal_close_port();
-
+  timedate(&td);
   if (config_printflags->printer_use == 1 && 
       config_printflags->printer_log == 1 && 
       printer_error == 0)
     {
       printer = open("P:",O_APPEND);
-      sprintf(logstring,LOG_FORMAT,_log_date_time(),_log_level(level),msg);
+      sprintf(logstring,"20%02u-%02u-%02u %02u:%02u:%02u %s %s\n",td.year,td.month,td.day,td.hours,td.minutes,td.seconds,_log_level(level),msg);
       write(printer,logstring,strlen(logstring));
       close(printer);
       logFile = open(LOG_FILE,O_APPEND);
@@ -68,7 +69,6 @@ void log(char level, const char* msg)
       close(logFile);
     }
   free(logstring);
-
   terminal_open_port();
 
 }
@@ -196,6 +196,9 @@ void timedate(TimeDate* td)
   assert(td!=NULL);
   r.pc = 0x703; // KERNEL
   r.y = 100;    // GETTD
+
+  *(byte*) 0x0761 = 0x10; // DEVICE
+
   _sys(&r);     // Do Kernel Call.
 
   td->day     = *(byte*) 0x77B;

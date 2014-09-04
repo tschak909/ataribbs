@@ -53,7 +53,8 @@ void login(const char* name)
     {
       char* from;
       char* email;
-      char* tmp,tmp2;
+      char* tmp;
+      char* tmp2;
       unsigned short passwordHash,passwordHashVerify;
       TimeDate firstLogon;
       char userid[40];
@@ -80,16 +81,16 @@ void login(const char* name)
 	  passwordHashVerify = crc16(tmp2,strlen(tmp2));
 	  free(tmp2);
 	  terminal_send_eol();
-	  if (passwordHash != passwordHash2)
+	  if (passwordHash != passwordHashVerify)
 	    {
 	      terminal_send("Passwords dont match. Try again.",0);
 	      terminal_send_eol();
 	    }
 	}
-      record.username = name;
-      record.from = from;
-      record.email = email;
-      record.password_hash = password_hash;
+      strcpy(record.username,name);
+      strcpy(record.from,from);
+      strcpy(record.email,email);
+      record.password_hash = passwordHash;
       record.security_level=10;
       record.firstLogon=firstLogon;
       record.lastLogon=firstLogon;

@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <string.h>
 #include <bbslib/common/config.h>
 #include <bbslib/common/terminal.h>
 #include "init.h"
@@ -9,6 +10,8 @@
 #include <bbslib/common/util.h>
 #include <bbslib/common/input.h>
 #include <bbslib/common/filemenu.h>
+#include <bbslib/common/user.h>
+#include <bbslib/common/types.h>
 
 PrinterFlags *config_printflags = NULL;
 SerialPortFlags *config_serialportflags = NULL; 
@@ -43,6 +46,60 @@ unsigned char run()
   return 0;
 }
 
+void login(const char* name)
+{
+  UserRecord record;
+  if (user_lookup(name,&record) == 0)
+    {
+      char* from;
+      char* email;
+      char* tmp,tmp2;
+      unsigned short passwordHash,passwordHashVerify;
+      TimeDate firstLogon;
+      char userid[40];
+      timedate(&firstLogon);
+      terminal_send("You seem to be a new user.",0);
+      terminal_send_eol();
+      terminal_send("Where are you calling from?",0);
+      from = prompt_line(1,36);
+      terminal_send_eol();
+      terminal_send("What is your email address?",0);
+      email = prompt_line(1,36);
+      terminal_send_eol();
+      passwordHash=0;
+      passwordHashVerify=1;
+      while (passwordHash != passwordHashVerify)
+	{
+	  terminal_send("Please enter a password:",0);
+	  tmp = prompt_password_line(1,36,'*');
+	  passwordHash = crc16(tmp,strlen(tmp));
+	  free(tmp);
+	  terminal_send_eol();
+	  terminal_send("Please enter password, again:",0);
+	  tmp2 = prompt_password_line(1,36,'*');
+	  passwordHashVerify = crc16(tmp2,strlen(tmp2));
+	  free(tmp2);
+	  terminal_send_eol();
+	  if (passwordHash != passwordHash2)
+	    {
+	      terminal_send("Passwords dont match. Try again.",0);
+	      terminal_send_eol();
+	    }
+	}
+      record.username = name;
+      record.from = from;
+      record.email = email;
+      record.password_hash = password_hash;
+      record.security_level=10;
+      record.firstLogon=firstLogon;
+      record.lastLogon=firstLogon;
+      user_add(&record);
+      sprintf(userid,"Your User ID is %u",record.user_id);
+      terminal_send(userid,0);
+      terminal_send_eol();
+    }
+}
+
 void bbs()
 {
   char* name;
@@ -60,12 +117,12 @@ void bbs()
   terminal_send_eol();
   terminal_send("For now, I just log names.",0);
   terminal_send_eol();
-  terminal_send("Who is this calling? ",0);
+  terminal_send("Username: ",0);
   terminal_send_eol();
   name = prompt_line(1,32);
   terminal_send_eol();
-  sprintf(logstring,"Login by %s",name);
-  log(LOG_LEVEL_NOTICE,logstring);
+  
+  login(name);
 
   filemenu_show("BULLETIN");
 

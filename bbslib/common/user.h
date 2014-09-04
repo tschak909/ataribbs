@@ -9,6 +9,8 @@
 #define FILE_USER_IDX "D1:USER.IDX"
 #define FILE_NUMUSERS "D1:NUMUSERS"
 
+#include "types.h"
+
 typedef struct
 {
   unsigned int user_id;
@@ -16,8 +18,10 @@ typedef struct
   unsigned short password_hash;
   char from[40];
   char security_level;
-  long birthday;
+  TimeDate birthday;
   char email[64];
+  TimeDate firstLogon;
+  TimeDate lastLogon;
 } UserRecord;
 
 typedef struct

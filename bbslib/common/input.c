@@ -119,3 +119,40 @@ char* prompt_line(unsigned char type, unsigned char size)
   return input_line_and_echo(r,size);
 
 }
+
+char* prompt_password_line(unsigned char type, unsigned char size, unsigned char echo)
+{
+  char b,r,e,i;
+  char prompt[66];
+  switch (type)
+    {
+    case 0:
+      b=0;
+      r=0;
+      e=0;
+      break;
+    case 1:
+      b='[';
+      r='_';
+      e=']';
+      break;
+    case 2:
+      b='>';
+      r='_';
+      e='<';
+    }
+  memset(&prompt,0x20,66); // blank it out.
+  memset(&prompt,r,size+1); // fill with rubout character
+  prompt[0]=b; // beginning character
+  prompt[size+1]=e; // end character
+  prompt[size+2]='\0'; // and a null.
+
+  terminal_send(prompt,0);
+  for (i=0;i<size+1;++i)
+    {
+      terminal_send_left();
+    }
+
+  return input_line_and_echo_char(echo,r,size);
+
+}

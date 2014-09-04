@@ -46,10 +46,11 @@ unsigned char run()
   return 0;
 }
 
-void login(const char* name)
+unsigned char login(char* name)
 {
   UserRecord record;
-  if (user_lookup(name,&record) == 0)
+  char* uname = strupper(name);
+  if (user_lookup(uname,&record) == 0)
     {
       char* from;
       char* email;
@@ -62,9 +63,11 @@ void login(const char* name)
       terminal_send("You seem to be a new user.",0);
       terminal_send_eol();
       terminal_send("Where are you calling from?",0);
+      terminal_send_eol();
       from = prompt_line(1,36);
       terminal_send_eol();
       terminal_send("What is your email address?",0);
+      terminal_send_eol();
       email = prompt_line(1,36);
       terminal_send_eol();
       passwordHash=0;
@@ -72,11 +75,13 @@ void login(const char* name)
       while (passwordHash != passwordHashVerify)
 	{
 	  terminal_send("Please enter a password:",0);
+	  terminal_send_eol();
 	  tmp = prompt_password_line(1,36,'*');
 	  passwordHash = crc16(tmp,strlen(tmp));
 	  free(tmp);
 	  terminal_send_eol();
 	  terminal_send("Please enter password, again:",0);
+	  terminal_send_eol();
 	  tmp2 = prompt_password_line(1,36,'*');
 	  passwordHashVerify = crc16(tmp2,strlen(tmp2));
 	  free(tmp2);
@@ -98,6 +103,41 @@ void login(const char* name)
       sprintf(userid,"Your User ID is %u",record.user_id);
       terminal_send(userid,0);
       terminal_send_eol();
+      return 1;
+    }
+  else
+    {
+      unsigned char retry=0;
+      char* password;
+      unsigned short passwordHash;
+      char tmp[50];
+      TimeDate td;
+      while (retry<3)
+	{
+	  terminal_send("Password:",0);
+	  terminal_send_eol();
+	  password = prompt_password_line(1,36,'*');
+	  passwordHash = crc16(password,strlen(password));
+	  free(password);
+	  terminal_send_eol();
+	  if (passwordHash == record.password_hash)
+	    {
+	      sprintf(tmp,"\n\nYou last logged in on 20%02u-%02u-%02u @ %02u:%02u:%02u\n\n",record.lastLogon.year,record.lastLogon.month,record.lastLogon.day,record.lastLogon.hours,record.lastLogon.minutes,record.lastLogon.seconds);
+	      timedate(&td);
+	      record.lastLogon = td;
+	      user_update(&record);
+	      terminal_send(tmp,0);
+	      terminal_send_eol();
+	      return 1; 
+	    }
+	  else
+	    {
+	      terminal_send_up();
+	      terminal_send_up();
+	      retry++;
+	    }
+	}
+      return 0; 
     }
 }
 
@@ -122,10 +162,9 @@ void bbs()
   terminal_send_eol();
   name = prompt_line(1,32);
   terminal_send_eol();
-  
-  login(name);
 
-  filemenu_show("BULLETIN");
+  if (login(name) == 1)
+    filemenu_show("BULLETIN");    
 
   terminal_send("Thanks for calling... ",0);
   terminal_send_eol();

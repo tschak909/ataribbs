@@ -158,10 +158,21 @@ void bbs()
   terminal_send_eol();
   terminal_send("For now, I just log names.",0);
   terminal_send_eol();
-  terminal_send("Username: ",0);
-  terminal_send_eol();
-  name = prompt_line(1,32);
-  terminal_send_eol();
+
+  while (name[0] == 0)
+    {
+      terminal_send("Username: ",0);
+      terminal_send_eol();
+      name = prompt_line(1,32);
+      terminal_send_eol();
+      if (name[0] != 0)
+	break;
+      else
+	{
+	  terminal_send_up();
+	  terminal_send_up();
+	}
+    }
 
   if (login(name) == 1)
     filemenu_show("BULLETIN");    

@@ -175,8 +175,12 @@ void bbs()
     }
 
   if (login(name) == 1)
-    filemenu_show("BULLETIN");    
-
+    {
+      char login[40];
+      sprintf(login,"%s logged in.",name);
+      log(LOG_LEVEL_NOTICE,login);
+      filemenu_show("BULLETIN");    
+    }
   terminal_send("Thanks for calling... ",0);
   terminal_send_eol();
   terminal_send("More will happen soon!",0);

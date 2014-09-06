@@ -403,6 +403,18 @@ void terminal_send_file(const char* filename)
   terminal_close_port();
 
   fd = open(filename,O_RDONLY);
+  if (fd<0)
+    {
+      char msg[80];
+      sprintf(msg,"terminal_send_file(): Could not open file: %s",filename);
+      log(LOG_LEVEL_WARNING,msg);
+      terminal_send(msg,0);
+      terminal_send_eol();
+      terminal_beep();
+      close(fd);
+      terminal_open_port();
+      return;
+    }
   while (abr = read(fd,buf,TERMINAL_FILE_SEND_BUFFER_SIZE))
     {
       terminal_open_port();

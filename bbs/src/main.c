@@ -12,6 +12,7 @@
 #include <bbslib/common/filemenu.h>
 #include <bbslib/common/user.h>
 #include <bbslib/common/types.h>
+#include <bbslib/common/menu.h>
 
 PrinterFlags *config_printflags = NULL;
 SerialPortFlags *config_serialportflags = NULL; 
@@ -181,6 +182,9 @@ void bbs()
       log(LOG_LEVEL_NOTICE,login);
       filemenu_show("BULLETIN");    
     }
+
+  menu();
+
   terminal_send("Thanks for calling... ",0);
   terminal_send_eol();
   terminal_send("More will happen soon!",0);

@@ -246,7 +246,7 @@ int mboarde(char* filename)
 
 int show_usage(char* argv[])
 {
-  printf("\nMenu filename not specified.\n\nUsage: %s <file.mmu>\n\n",argv[0]);
+  printf("\nBoardlist filename not specified.\n\nUsage: %s <file.mmu>\n\n",argv[0]);
   return 1;
 }
 

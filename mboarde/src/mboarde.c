@@ -1,5 +1,5 @@
 /**
- * mboarde.c - File Menu Editor
+ * mboarde.c - Message Board List Editor.
  */
 
 #include <stdio.h>
@@ -20,6 +20,22 @@ typedef struct
 } MessageboardmenuEntry;
 
 const char* messageboardmenu_items="1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ"; // 36 entries.
+char defaultBoard=255;
+
+void mboarde_set_default(char selected, char yesNo)
+{
+  unsigned char i;
+  if (yesNo == 0)
+    selected=255; // Makes everything below return 0
+
+  for (i=0;i<37;++i)
+    {
+      if (i==selected)
+	{
+	  defaultBoard=i;
+	}
+    }
+}
 
 unsigned char messageboardmenu_item_index(char c)
 {
@@ -84,13 +100,26 @@ unsigned char yesNoOption(const char* prompt, char defaultOption)
     }
 }
 
-void mboarde_edit_entry(char item, MessageboardmenuEntry* entry)
+unsigned char mboarde_edit_entry(char item, MessageboardmenuEntry* entry)
 {
-  
-  strcpy(entry->itemFile,stringOption("Board Filename without extension. e.g. ATARI8",entry->itemFile));
+  char itemFile[32];
+  strcpy(itemFile,stringOption("Board Filename without extension. ^D <RETURN> Deletes",entry->itemFile));
+  if (itemFile[0] == 0x04)
+    {
+      itemFile[0]=0;
+      entry->itemFile[0]=0;
+      entry->itemDescription[0]=0;
+      entry->itemName[0]=0;
+      entry->item=0;
+      if (messageboardmenu_item_index(item)==defaultBoard)
+	defaultBoard=255; // Deselect default board if needed.
+      return 0;
+    }
+  strcpy(entry->itemFile,itemFile);
   strcpy(entry->itemName,stringOption("Board Title. e.g. Bulletin #1",entry->itemName));
   strcpy(entry->itemDescription,stringOption("Board Description",entry->itemDescription));
   entry->item = item;
+  return yesNoOption("Default board (Y/N)",defaultBoard);
 
 }
 
@@ -103,7 +132,9 @@ unsigned char mboarde_load(int fd, MessageboardmenuEntry** entries)
 
   entry = calloc(1,sizeof(MessageboardmenuEntry));
 
-  num_entries = read(fd,&num_entries,sizeof(unsigned char));
+  read(fd,&num_entries,sizeof(unsigned char));
+  read(fd,&defaultBoard,sizeof(unsigned char));
+
   printf("\nLoading %u menu entries...",num_entries);
 
   while (read(fd, (MessageboardmenuEntry *)entry,sizeof(MessageboardmenuEntry)) == sizeof(MessageboardmenuEntry))
@@ -118,6 +149,11 @@ unsigned char mboarde_load(int fd, MessageboardmenuEntry** entries)
   return num_entries;
 }
 
+unsigned char mboarde_is_default(char c)
+{
+  return (c==defaultBoard ? '*' : ' ');
+}
+
 void mboarde_show_entries(MessageboardmenuEntry** entries)
 {
   unsigned char i;
@@ -125,11 +161,13 @@ void mboarde_show_entries(MessageboardmenuEntry** entries)
   printf("\f\nSelect a board entry to edit. ^C exits.\n\n");
   for (i=0;i<35;i=i+2)
     {
-      printf("[%c] %15s [%c] %15s\n",
+      printf("[%c] %14s%c [%c] %14s%c\n",
 	     messageboardmenu_items[i],
 	     entries[i]->itemFile,
+	     mboarde_is_default(i),
 	     messageboardmenu_items[i+1],
-	     entries[i+1]->itemFile);
+	     entries[i+1]->itemFile,
+	     mboarde_is_default(i+1));
     }
 
   printf("\n");
@@ -143,6 +181,7 @@ void mboarde_save(int fd, MessageboardmenuEntry** entries)
 
   lseek(fd,0,SEEK_SET);
   write(fd,&num_entries,sizeof(unsigned char)); // Will be 0 until re-seek.
+  write(fd,&defaultBoard,sizeof(unsigned char));
 
   for (i=0;i<37;++i)
     {
@@ -186,7 +225,7 @@ int mboarde_edit(int fd)
     }
 
 
-  while (key!=0x03) // ^C Exits.
+ top:  while (key!=0x03) // ^C Exits.
     {
       mboarde_show_entries(entries);
       printf("Select menu item [_]%c%c",0x1e,0x1e);
@@ -194,11 +233,22 @@ int mboarde_edit(int fd)
       if (key!=0x03 && messageboardmenu_item_index(key) != 255)
 	{
 	  printf("%c\n",key);
-	  mboarde_edit_entry(key,entries[messageboardmenu_item_index(key)]);
+	  mboarde_set_default(messageboardmenu_item_index(key),
+			      mboarde_edit_entry(key,entries[messageboardmenu_item_index(key)]));
 	}
     }
 
   printf("\n\n");
+
+  if (defaultBoard == 255)
+    {
+      printf("A Default board was not set.\n");
+      printf("Please set a default board.\n\n");
+      printf("Press any key. ");
+      cgetc();
+      key=0;
+      goto top;
+    }
   if (yesNoOption("Save",'N') == 1)
     {
       mboarde_save(fd,entries);

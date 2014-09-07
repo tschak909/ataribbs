@@ -35,7 +35,7 @@ unsigned char filemenu_item_index(char c)
 const char* stringOption(const char* prompt, const char* defaultOption)
 {
   char str[80];
-  char ret[80];
+  // char ret[80];
   printf("%s\n(default: %s):\n",prompt,defaultOption);
   fgets(str,80,stdin);
   if (str[0] == 0x9b)
@@ -46,8 +46,8 @@ const char* stringOption(const char* prompt, const char* defaultOption)
     }
   else
     {
-      sscanf(str,"%s",ret);
-      return strdup(strupper(ret));
+      str[strlen(str)-1]=0; // get rid of that EOL
+      return strdup(str);
     }
 }
 

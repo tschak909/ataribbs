@@ -12,3 +12,4 @@ all mostlyclean clean install zip:
 	@$(MAKE) -C bbsconf   --no-print-directory $@
 	@$(MAKE) -C bbs       --no-print-directory $@
 	@$(MAKE) -C fmenue    --no-print-directory $@
+	@$(MAKE) -C mboarde   --no-print-directory $@

@@ -33,5 +33,8 @@ typedef struct
 unsigned char user_add(UserRecord* record);
 unsigned char user_lookup(const char* username, UserRecord* record);
 unsigned char user_update(UserRecord* record);
+void user_scan_begin();
+void user_scan_end();
+int user_scan_next(UserRecord* record);
 
 #endif USER_H

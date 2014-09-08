@@ -7,11 +7,14 @@
 #include <fcntl.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <assert.h>
 #include "util.h"
 #include "user.h"
 
 #define TRUE 1
 #define FALSE 0
+
+int userscanfd;
 
 unsigned short _user_name_to_hash(const char* username)
 {
@@ -253,3 +256,19 @@ unsigned char user_update(UserRecord* record)
 
 }
 
+void user_scan_begin()
+{
+  userscanfd = open("D1:USER.DAT",O_RDONLY);
+  assert(userscanfd>0);
+}
+
+void user_scan_end()
+{
+  assert(userscanfd>0);
+  close(userscanfd);
+}
+
+int user_scan_next(UserRecord* record)
+{
+  return read(userscanfd,(UserRecord *)record,sizeof(UserRecord));
+}

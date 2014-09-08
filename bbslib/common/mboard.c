@@ -28,6 +28,8 @@ MMUFile mboard_open(const char* file)
   if (read(fd,&mboard_default,sizeof(unsigned char)) != sizeof(unsigned char))
     return -1;
 
+  printf("Num Boards %u - Default Board: %c\n",mboard_num_boards,mboard_default);
+
   return fd;
 }
 

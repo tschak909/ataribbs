@@ -149,6 +149,7 @@ void bbs()
   char logstring[100];
   char i;
 
+  name[0]=0;
   printf("bbs()\n\n");
   log(LOG_LEVEL_NOTICE,"Connected!");
   terminal_determine_eol();

@@ -7,6 +7,7 @@
 #include "terminal.h"
 #include "config.h"
 #include "util.h"
+#include "mboard.h"
 #include <serial.h>
 #include <6502.h>
 #include <string.h>
@@ -16,8 +17,9 @@
 #include <stdlib.h>
 #include <ctype.h>
 
-char current_msg_board[32];
 unsigned char mode=MODE_MAIN_MENU;
+MMUFile mmufd=0;
+MMUEntry* mmuentry;
 
 void _menu_display_screen(unsigned char mode)
 {
@@ -46,6 +48,23 @@ void _menu_confirm(unsigned char c, const char* prompt)
   terminal_send_eol();
 }
 
+void _menu_msg_open()
+{
+  char output[80];
+  mmuentry = calloc(1,sizeof(MMUEntry));
+  mmufd = mboard_open("D1:MAIN.MMU");
+  mboard_get_default(mmufd,mmuentry);
+  sprintf(output,"Current board is %s",mmuentry->itemName);
+  terminal_send(output,0);
+  terminal_send_eol();
+}
+
+void _menu_msg_close()
+{
+  mboard_close(mmufd);
+  free(mmuentry);
+}
+
 unsigned char _menu_msg(unsigned char c)
 {
   switch(toupper(c))
@@ -56,6 +75,7 @@ unsigned char _menu_msg(unsigned char c)
     case 'X':
       _menu_confirm('X',"Exit to Main Menu");
       mode=MODE_MAIN_MENU;
+      _menu_msg_close();
       return 0;
     default:
       terminal_beep();
@@ -74,6 +94,7 @@ unsigned char _menu_main(unsigned char c)
     case 'M':
       _menu_confirm('M',"Message Board");
       mode=MODE_MSG_MENU;
+      _menu_msg_open();
       return 0;
       break;
     default:

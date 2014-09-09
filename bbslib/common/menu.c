@@ -8,6 +8,7 @@
 #include "config.h"
 #include "util.h"
 #include "mboard.h"
+#include "user.h"
 #include <serial.h>
 #include <6502.h>
 #include <string.h>
@@ -51,10 +52,12 @@ void _menu_confirm(unsigned char c, const char* prompt)
 void _menu_msg_open()
 {
   char output[80];
+  terminal_close_port();
   mmuentry = calloc(1,sizeof(MMUEntry));
   mmufd = mboard_open("D1:MAIN.MMU");
   mboard_get_default(mmufd,mmuentry);
   sprintf(output,"Current board is %s",mmuentry->itemName);
+  terminal_open_port();
   terminal_send(output,0);
   terminal_send_eol();
 }
@@ -64,6 +67,8 @@ void _menu_msg_close()
   mboard_close(mmufd);
   free(mmuentry);
 }
+
+
 
 unsigned char _menu_msg(unsigned char c)
 {
@@ -83,6 +88,29 @@ unsigned char _menu_msg(unsigned char c)
     }
 }
 
+void _menu_user_list()
+{
+  UserRecord* record;
+  char output[120];
+  record = calloc(1,sizeof(UserRecord));
+  terminal_close_port();
+  terminal_send_screen("USERLIST");
+  terminal_close_port();
+  user_scan_begin();
+  while (user_scan_next(record) == sizeof(UserRecord))
+    {
+      terminal_open_port();
+      sprintf(output,"%5u %-13s %-15s",record->user_id,record->username,record->from);
+      terminal_send(output,0);
+      terminal_send_eol();
+      memset(record,0,sizeof(UserRecord));
+      terminal_close_port();
+    }
+  user_scan_end();
+  terminal_open_port();
+  free(record);
+}
+
 unsigned char _menu_main(unsigned char c)
 {
   switch(toupper(c))
@@ -97,6 +125,9 @@ unsigned char _menu_main(unsigned char c)
       _menu_msg_open();
       return 0;
       break;
+    case 'U':
+      _menu_confirm('U',"User List");
+      _menu_user_list();
     default:
       terminal_beep();
       return 0;
@@ -110,7 +141,8 @@ unsigned char _is_valid_char(unsigned char mode, unsigned char c)
     {
     case MODE_MAIN_MENU:
       return (toupper(c)=='G' ||
-	      toupper(c)=='M');
+	      toupper(c)=='M' ||
+	      toupper(c)=='U');
       break;
     case MODE_MSG_MENU:
       return (toupper(c)=='G' ||

@@ -30,13 +30,14 @@ extern ModemStrings *config_modemstrings;
 
 unsigned char terminal_port_status;
 unsigned char terminal_type;
-
 unsigned char seropen_count;
+unsigned char terminal_line_counter;
 
 unsigned char terminal_init()
 {
   unsigned char res;
   terminal_type = TERMINAL_TYPE_ASCII;
+  terminal_reset_line_counter();
  
   if ((res = terminal_open_port()) != SER_ERR_OK)
     {
@@ -539,4 +540,14 @@ void terminal_beep()
       ser_put(0xfd);
       putchar(0xfd);
     }
+}
+
+void terminal_reset_line_counter()
+{
+  terminal_line_counter=0;
+}
+
+unsigned char terminal_get_line_counter()
+{
+  return terminal_line_counter;
 }

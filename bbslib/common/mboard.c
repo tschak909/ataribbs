@@ -28,7 +28,7 @@ MMUFile mboard_open(const char* file)
   if (read(fd,&mboard_default,sizeof(unsigned char)) != sizeof(unsigned char))
     return -1;
 
-  printf("Num Boards %u - Default Board: %c\n",mboard_num_boards,mboard_default);
+  printf("Num Boards %u - Default Board: %u\n",mboard_num_boards,mboard_default);
 
   return fd;
 }
@@ -50,28 +50,19 @@ MMUCursor mboard_scan_next(MMUFile file,MMUCursor cursor, MMUEntry* entry)
   return read(file,(MMUEntry *)entry,sizeof(MMUEntry)) + cursor;
 }
 
-unsigned char mboard_get(MMUFile file,char item,MMUEntry* entry)
+unsigned char mboard_get(MMUFile file,char index,MMUEntry* entry)
 {
-  unsigned char i;
-  MMUCursor cursor;
   assert(file>0);
-  lseek(file,2,SEEK_SET);
-
-  for (i=0;i<mboard_num_boards;++i)
+  if (lseek(file,index*sizeof(MMUEntry)+2,SEEK_SET) == index*sizeof(MMUEntry)+2)
     {
-      cursor=mboard_scan_next(file,cursor,entry);
-      if (entry->item==item)
-	{
-	  return 1;
-	}
+      read(file,(MMUEntry* )entry,sizeof(MMUEntry));
+      return 1;
     }
-
   return 0;
 }
 
 unsigned char mboard_get_default(MMUFile file,MMUEntry* entry)
 {
-  printf("mboard_get_default: %u\n\n",mboard_default);
   return mboard_get(file,mboard_default,entry);
 }
 

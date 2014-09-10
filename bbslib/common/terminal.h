@@ -32,6 +32,8 @@ void terminal_send_clear_screen();
 void terminal_beep();
 void terminal_reset_line_counter();
 unsigned char terminal_get_line_counter();
+void terminal_enable_line_counter();
+void terminal_disable_line_counter();
 
 #define TERMINAL_PORT_OPEN 0
 #define TERMINAL_PORT_CLOSED 1

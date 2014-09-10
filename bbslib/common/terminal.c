@@ -32,12 +32,16 @@ unsigned char terminal_port_status;
 unsigned char terminal_type;
 unsigned char seropen_count;
 unsigned char terminal_line_counter;
+unsigned char terminal_line_counter_enable;
+unsigned char terminal_num_lines;
 
 unsigned char terminal_init()
 {
   unsigned char res;
   terminal_type = TERMINAL_TYPE_ASCII;
   terminal_reset_line_counter();
+  terminal_disable_line_counter();
+  terminal_num_lines=22; // FIXME: Pull from user.
  
   if ((res = terminal_open_port()) != SER_ERR_OK)
     {
@@ -550,4 +554,14 @@ void terminal_reset_line_counter()
 unsigned char terminal_get_line_counter()
 {
   return terminal_line_counter;
+}
+
+void terminal_enable_line_counter()
+{
+  terminal_line_counter_enable=1;
+}
+
+void terminal_disable_line_counter()
+{
+  terminal_line_counter_enable=0;
 }

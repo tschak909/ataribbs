@@ -186,6 +186,7 @@ unsigned char _menu(unsigned char mode)
 void menu()
 {
   unsigned char bQuit=0;
+  mode=0;
   while (!bQuit)
     {
       _menu_display_screen(mode);

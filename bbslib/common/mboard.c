@@ -71,6 +71,7 @@ unsigned char mboard_get(MMUFile file,char item,MMUEntry* entry)
 
 unsigned char mboard_get_default(MMUFile file,MMUEntry* entry)
 {
+  printf("mboard_get_default: %u\n\n",mboard_default);
   return mboard_get(file,mboard_default,entry);
 }
 

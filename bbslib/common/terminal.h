@@ -30,6 +30,7 @@ void terminal_send_down();
 void terminal_send_left();
 void terminal_send_right();
 void terminal_send_clear_screen();
+void terminal_send_pagination_prompt();
 void terminal_beep();
 void terminal_reset_line_counter();
 unsigned char terminal_get_line_counter();

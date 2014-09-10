@@ -41,7 +41,7 @@ unsigned char terminal_init()
   terminal_type = TERMINAL_TYPE_ASCII;
   terminal_reset_line_counter();
   terminal_disable_line_counter();
-  terminal_num_lines=22; // FIXME: Pull from user.
+  terminal_num_lines=20; // FIXME: Pull from user.
  
   if ((res = terminal_open_port()) != SER_ERR_OK)
     {
@@ -166,6 +166,17 @@ unsigned char terminal_send(const char* sendString, unsigned char willEcho)
   register int i;
   for (i=0;i<strlen(sendString);++i)
     {
+      if (terminal_line_counter_enable && terminal_is_an_eol(sendString[i]))
+	{
+	  if (terminal_line_counter > terminal_num_lines)
+	    {
+	      terminal_send_pagination_prompt();
+	    }
+	  else
+	    {
+	      terminal_line_counter++;
+	    }
+	}
       if (sendString[i] == '\n' && terminal_type == TERMINAL_TYPE_ASCII)
 	{
 	  res = ser_put(0x0a); // Fix idiotic newline translation.
@@ -544,6 +555,17 @@ void terminal_send_clear_screen()
       ser_put(0x7d);
       putchar(0x7d);
     }
+}
+
+void terminal_send_pagination_prompt()
+{
+  terminal_disable_line_counter();
+  terminal_send_eol();
+  terminal_send("---Pause---",0);
+  terminal_get_char();
+  terminal_send_eol();
+  terminal_reset_line_counter();
+  terminal_enable_line_counter();
 }
 
 void terminal_beep()

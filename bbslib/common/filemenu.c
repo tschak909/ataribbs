@@ -79,7 +79,10 @@ void filemenu_show(const char* filename)
 	      terminal_send(menuentries[i]->itemName,0);
 	      terminal_send_eol();
 	      terminal_send_eol();
+	      terminal_enable_line_counter();
 	      terminal_send_screen(menuentries[i]->itemFile);
+	      terminal_send_pagination_prompt();
+	      terminal_disable_line_counter();
 	      terminal_send_eol();
 	      terminal_send_screen(filename);
 	      terminal_send("Select File to Display: [_]",0);

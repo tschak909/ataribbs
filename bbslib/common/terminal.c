@@ -393,6 +393,19 @@ void terminal_determine_eol()
     }
 }
 
+unsigned char terminal_is_an_eol(unsigned char c)
+{
+  switch (terminal_type)
+    {
+    case TERMINAL_TYPE_ASCII:
+      return is_an_ascii_cr(c);
+      break;
+    case TERMINAL_TYPE_ATASCII:
+      return is_an_atascii_eol(c);
+      break;
+    }
+}
+
 void terminal_send_file(const char* filename)
 {
   int fd;

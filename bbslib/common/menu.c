@@ -72,6 +72,10 @@ void _menu_msg_open()
 
 void _menu_msg_close()
 {
+  assert(current_msgfile!=NULL);
+  assert(mmuentry!=NULL);
+  assert(mmufd>0);
+  msg_close(current_msgfile);
   mboard_close(mmufd);
   free(mmuentry);
 }

@@ -53,10 +53,17 @@ void _menu_confirm(unsigned char c, const char* prompt)
 
 void _menu_msg_open()
 {
+  char output[80];
   terminal_close_port();
   mmuentry = calloc(1,sizeof(MMUEntry));
   mmufd = mboard_open("D1:MAIN.MMU");
   current_mboard = mboard_get_default(mmufd,mmuentry);
+  sprintf(output,"Current message board is %s",mmuentry->itemName);
+  terminal_open_port();
+  terminal_send(output,0);
+  terminal_send_eol();
+  terminal_send_eol();
+  terminal_close_port();
 }
 
 void _menu_msg_close()
@@ -77,7 +84,8 @@ void _menu_show_board()
 
 void _menu_msg_next_board()
 {
-  if (current_mboard<mboard_get_num_boards())
+  terminal_close_port();
+  if (current_mboard<mboard_get_num_boards()-1)
     {
       current_mboard++;
     }
@@ -86,20 +94,23 @@ void _menu_msg_next_board()
       current_mboard=0;
     }
   mboard_get(mmufd,current_mboard,mmuentry);
+  terminal_open_port();
   _menu_show_board();
 }
 
 void _menu_msg_previous_board()
 {
+  terminal_close_port();
   if (current_mboard>0)
     {
       current_mboard--;
     }
   else
     {
-      current_mboard=mboard_get_num_boards();
+      current_mboard=mboard_get_num_boards()-1;
     }
   mboard_get(mmufd,current_mboard,mmuentry);
+  terminal_open_port();
   _menu_show_board();
 }
 
@@ -108,9 +119,11 @@ unsigned char _menu_msg(unsigned char c)
   switch(toupper(c))
     {
     case 'N':
+      _menu_confirm('N',"Next Board");
       _menu_msg_next_board();
       return 0;
     case 'P':
+      _menu_confirm('P',"Previous Board");
       _menu_msg_previous_board();
       return 0;
     case 'G':

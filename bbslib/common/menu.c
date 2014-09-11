@@ -17,10 +17,12 @@
 #include <atari.h>
 #include <stdlib.h>
 #include <ctype.h>
+#include <assert.h>
 
 unsigned char mode=MODE_MAIN_MENU;
 MMUFile mmufd=0;
 MMUEntry* mmuentry;
+char current_mboard;
 
 void _menu_display_screen(unsigned char mode)
 {
@@ -51,15 +53,10 @@ void _menu_confirm(unsigned char c, const char* prompt)
 
 void _menu_msg_open()
 {
-  char output[80];
   terminal_close_port();
   mmuentry = calloc(1,sizeof(MMUEntry));
   mmufd = mboard_open("D1:MAIN.MMU");
-  mboard_get_default(mmufd,mmuentry);
-  sprintf(output,"Current board is %s",mmuentry->itemName);
-  terminal_open_port();
-  terminal_send(output,0);
-  terminal_send_eol();
+  current_mboard = mboard_get_default(mmufd,mmuentry);
 }
 
 void _menu_msg_close()
@@ -68,12 +65,54 @@ void _menu_msg_close()
   free(mmuentry);
 }
 
+void _menu_show_board()
+{
+  char output[80];
+  assert(mmuentry!=NULL);
+  sprintf(output,"Current board changed to %s",mmuentry->itemName);
+  terminal_send(output,0);
+  terminal_send_eol();
+  terminal_send_eol();
+}
 
+void _menu_msg_next_board()
+{
+  if (current_mboard<mboard_get_num_boards())
+    {
+      current_mboard++;
+    }
+  else
+    {
+      current_mboard=0;
+    }
+  mboard_get(mmufd,current_mboard,mmuentry);
+  _menu_show_board();
+}
+
+void _menu_msg_previous_board()
+{
+  if (current_mboard>0)
+    {
+      current_mboard--;
+    }
+  else
+    {
+      current_mboard=mboard_get_num_boards();
+    }
+  mboard_get(mmufd,current_mboard,mmuentry);
+  _menu_show_board();
+}
 
 unsigned char _menu_msg(unsigned char c)
 {
   switch(toupper(c))
     {
+    case 'N':
+      _menu_msg_next_board();
+      return 0;
+    case 'P':
+      _menu_msg_previous_board();
+      return 0;
     case 'G':
       _menu_confirm('G',"Goodbye");
       return 1;
@@ -146,7 +185,9 @@ unsigned char _is_valid_char(unsigned char mode, unsigned char c)
       break;
     case MODE_MSG_MENU:
       return (toupper(c)=='G' ||
-	      toupper(c)=='X');
+	      toupper(c)=='X' ||
+	      toupper(c)=='N' ||
+	      toupper(c)=='P');
       break;
     }
   return 0;

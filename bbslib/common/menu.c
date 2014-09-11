@@ -7,7 +7,9 @@
 #include "terminal.h"
 #include "config.h"
 #include "util.h"
+#include "types.h"
 #include "mboard.h"
+#include "msg.h"
 #include "user.h"
 #include <serial.h>
 #include <6502.h>
@@ -23,6 +25,7 @@ unsigned char mode=MODE_MAIN_MENU;
 MMUFile mmufd=0;
 MMUEntry* mmuentry;
 char current_mboard;
+MsgFile* current_msgfile;
 
 void _menu_display_screen(unsigned char mode)
 {
@@ -58,6 +61,7 @@ void _menu_msg_open()
   mmuentry = calloc(1,sizeof(MMUEntry));
   mmufd = mboard_open("D1:MAIN.MMU");
   current_mboard = mboard_get_default(mmufd,mmuentry);
+  current_msgfile = msg_open(mmuentry->itemFile);
   sprintf(output,"Current message board is %s",mmuentry->itemName);
   terminal_open_port();
   terminal_send(output,0);
@@ -93,7 +97,9 @@ void _menu_msg_next_board()
     {
       current_mboard=0;
     }
+  msg_close(current_msgfile);
   mboard_get(mmufd,current_mboard,mmuentry);
+  current_msgfile = msg_open(mmuentry->itemFile);
   terminal_open_port();
   _menu_show_board();
 }
@@ -109,9 +115,16 @@ void _menu_msg_previous_board()
     {
       current_mboard=mboard_get_num_boards()-1;
     }
+  msg_close(current_msgfile);
   mboard_get(mmufd,current_mboard,mmuentry);
+  current_msgfile = msg_open(mmuentry->itemFile);
   terminal_open_port();
   _menu_show_board();
+}
+
+void _menu_msg_header_scan()
+{
+  
 }
 
 unsigned char _menu_msg(unsigned char c)
@@ -125,6 +138,10 @@ unsigned char _menu_msg(unsigned char c)
     case 'P':
       _menu_confirm('P',"Previous Board");
       _menu_msg_previous_board();
+      return 0;
+    case 'H':
+      _menu_confirm('H',"Header Scan");
+      _menu_msg_header_scan();
       return 0;
     case 'G':
       _menu_confirm('G',"Goodbye");
@@ -200,7 +217,8 @@ unsigned char _is_valid_char(unsigned char mode, unsigned char c)
       return (toupper(c)=='G' ||
 	      toupper(c)=='X' ||
 	      toupper(c)=='N' ||
-	      toupper(c)=='P');
+	      toupper(c)=='P' ||
+	      toupper(c)=='H');
       break;
     }
   return 0;

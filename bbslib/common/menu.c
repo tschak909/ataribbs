@@ -199,6 +199,7 @@ unsigned char _menu_msg(unsigned char c)
       return 0;
     case 'G':
       _menu_confirm('G',"Goodbye");
+      _menu_msg_close();
       return 1;
     case 'X':
       _menu_confirm('X',"Exit to Main Menu");

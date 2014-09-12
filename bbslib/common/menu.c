@@ -10,7 +10,10 @@
 #include "types.h"
 #include "mboard.h"
 #include "msg.h"
+#include "idx.h"
+#include "header.h"
 #include "user.h"
+#include "input.h"
 #include <serial.h>
 #include <6502.h>
 #include <string.h>
@@ -128,7 +131,54 @@ void _menu_msg_previous_board()
 
 void _menu_msg_header_scan()
 {
-  
+  char output[100];
+  long nummsgs;
+  char* s1;
+  char* s2;
+  long r1, r2;
+  HeaderCursor cursor;
+  MsgHeader* header;
+  long i;
+  assert(current_msgfile!=NULL);
+
+  header=calloc(1,sizeof(MsgHeader));
+  assert(header!=NULL);
+  terminal_close_port();
+  nummsgs=idx_get_num_msgs(current_msgfile);
+  terminal_send("<RETURN> accepts default values.",0);
+  terminal_send_eol();
+
+  sprintf(output,"Start Message (1-%lu) ",nummsgs);
+  terminal_open_port();
+  terminal_send(output,0);
+  s1 = prompt_line(1,5);
+  r1 = atol(s1);
+  r1 = (r1 < nummsgs ? r1 : nummsgs);
+
+  sprintf(output,"End Message (1-%lu)",nummsgs);
+  terminal_open_port();
+  terminal_send(output,0);
+  s2 = prompt_line(1,5);
+  r2 = atol(s2);
+  r2 = (r2 < nummsgs ? r2 : nummsgs);
+
+  terminal_close_port();
+  cursor=header_scan_begin(current_msgfile,0);
+  terminal_enable_line_counter();
+  for (i=r1;i<r2;++i)
+    {
+      cursor=header_scan_next(current_msgfile,cursor,header);
+      terminal_open_port();
+      sprintf(output,"From: %-28s Date: 2014-01-01",header->from);
+      terminal_send(output,0);
+      terminal_send_eol();
+      sprintf(output,"Subject %-32s",header->subject);
+      terminal_send_eol();
+      terminal_close_port();
+    }
+  terminal_disable_line_counter();
+  terminal_send_pagination_prompt();
+  free(header);
 }
 
 unsigned char _menu_msg(unsigned char c)

@@ -156,7 +156,7 @@ void _menu_msg_header_scan()
   r1 = (r1 < nummsgs ? r1 : nummsgs);
 
   sprintf(output,"End Message (1-%lu)",nummsgs);
-  terminal_open_port();
+
   terminal_send(output,0);
   s2 = prompt_line(1,5);
   r2 = atol(s2);

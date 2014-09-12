@@ -169,15 +169,16 @@ void _menu_msg_header_scan()
     {
       cursor=header_scan_next(current_msgfile,cursor,header);
       terminal_open_port();
-      sprintf(output,"From: %-28s Date: 2014-01-01",header->from);
+      sprintf(output,"%5lu %-18s %02u-%02u-%02u %02u:%02u",header->msgId,header->from,header->stamp.year,header->stamp.month,header->stamp.day,header->stamp.hours,header->stamp.minutes);
       terminal_send(output,0);
       terminal_send_eol();
-      sprintf(output,"Subject %-32s",header->subject);
+      sprintf(output,"      %-32s",header->subject);
+      terminal_send(output,0);
+      terminal_send_eol();
       terminal_send_eol();
       terminal_close_port();
     }
   terminal_disable_line_counter();
-  terminal_send_pagination_prompt();
   free(header);
 }
 

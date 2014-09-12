@@ -379,6 +379,18 @@ void terminal_send_eol()
       putchar(0x9b);
       break;
     }
+
+  if (terminal_line_counter_enable)
+    {
+      if (terminal_line_counter > terminal_num_lines)
+	{
+	  terminal_send_pagination_prompt();
+	}
+      else
+	{
+	  terminal_line_counter++;
+	}
+    }
 }
 
 void terminal_determine_eol()

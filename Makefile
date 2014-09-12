@@ -13,3 +13,4 @@ all mostlyclean clean install zip:
 	@$(MAKE) -C bbs       --no-print-directory $@
 	@$(MAKE) -C fmenue    --no-print-directory $@
 	@$(MAKE) -C mboarde   --no-print-directory $@
+	@$(MAKE) -C flatmsg   --no-print-directory $@

@@ -12,10 +12,16 @@
 #include <time.h>
 #include <assert.h>
 #include <conio.h>
-#include "types.h"
-#include "msg.h"
-#include "idx.h"
-#include "header.h"
+#include <bbslib/common/config.h>
+#include <bbslib/common/util.h>
+#include <bbslib/common/types.h>
+#include <bbslib/common/msg.h>
+#include <bbslib/common/idx.h>
+#include <bbslib/common/header.h>
+
+PrinterFlags *config_printflags = NULL;
+SerialPortFlags *config_serialportflags = NULL; 
+ModemStrings *config_modemstrings = NULL;
 
 void _loremIpsum(unsigned char minWords, unsigned char maxWords,
 	       unsigned char minSentences, unsigned char maxSentences,
@@ -96,6 +102,7 @@ void test_write(MsgFile* file)
       strcpy(entry->from,name);
       sprintf(entry->subject,"Test Message %lu",i+nummsgs);
       entry->msgId=0;
+      timedate(&entry->stamp);
       _loremIpsum(3,10,2,10,8,body);
       printf("W: #: %lu F: %s L: %u\n",i+nummsgs,name,strlen(body));
       msg_put(file,entry,body);

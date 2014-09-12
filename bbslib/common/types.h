@@ -5,6 +5,8 @@
 #ifndef TYPES_H
 #define TYPES_H
 
+#include "util.h"
+
 typedef struct
 {
   int msgfd;
@@ -17,6 +19,7 @@ typedef struct
 {
   long msgId;
   long networkId;
+  TimeDate stamp;
   char from[64];
   char subject[64];
   char deleted;

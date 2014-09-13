@@ -182,10 +182,84 @@ void _menu_msg_header_scan()
   free(header);
 }
 
+unsigned char _menu_valid_chars(char c, const char* validchars)
+{
+  unsigned char i;
+  for (i=0;i<strlen(validchars);++i)
+    {
+      if (validchars[i]==c)
+	{
+	  return i;
+	}
+      else
+	{
+	  // fall through.
+	}
+    }
+  return 255;
+}
+
+void _menu_msg_board_jump()
+{
+  unsigned char i;
+  MMUEntry* entry;
+  char output[80];
+  char c=255;
+  char* validchars;
+  entry = calloc(1,sizeof(MMUEntry));
+  validchars = calloc(1,36);
+  terminal_close_port();
+  for (i=0;i<mboard_get_num_boards();++i)
+    {
+      mboard_get(mmufd,i,entry);
+      sprintf(output,"[%c] %s",entry->item,entry->itemDescription);
+      validchars[i]=entry->item;
+      validchars[i+1]=0;
+      terminal_open_port();
+      terminal_send(output,0);
+      terminal_send_eol();
+      terminal_close_port();
+    }
+  terminal_open_port();
+  terminal_send_eol();
+  free(entry);
+
+  terminal_send(">> [_]",0);
+  terminal_send_left();
+  terminal_send_left();  
+
+  while (_menu_valid_chars(c,validchars) == 255)
+    {
+      c=terminal_get_char();
+      if (!_menu_valid_chars(c,validchars) == 255)
+	{
+	  terminal_beep();
+	}
+      else
+	{
+	  i=_menu_valid_chars(c,validchars);
+	}
+    }
+
+  terminal_close_port();
+  msg_close(current_msgfile);
+  mboard_get(mmufd,i,mmuentry);
+  terminal_open_port();
+  _menu_confirm(mmuentry->item,mmuentry->itemDescription);
+  terminal_close_port();
+  current_msgfile = msg_open(mmuentry->itemFile);
+  terminal_open_port();
+  free(validchars);
+}
+
 unsigned char _menu_msg(unsigned char c)
 {
   switch(toupper(c))
     {
+    case 'J':
+      _menu_confirm('J',"Jump to Board");
+      _menu_msg_board_jump();
+      return 0;
     case 'N':
       _menu_confirm('N',"Next Board");
       _menu_msg_next_board();
@@ -274,7 +348,8 @@ unsigned char _is_valid_char(unsigned char mode, unsigned char c)
 	      toupper(c)=='X' ||
 	      toupper(c)=='N' ||
 	      toupper(c)=='P' ||
-	      toupper(c)=='H');
+	      toupper(c)=='H' ||
+	      toupper(c)=='J');
       break;
     }
   return 0;

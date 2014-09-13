@@ -252,6 +252,61 @@ void _menu_msg_board_jump()
   free(validchars);
 }
 
+void _menu_msg_board_read()
+{
+  char c=255;
+  char validchars[6];
+
+  validchars[0]=0x9b;
+  validchars[0]=0x0d;
+  validchars[1]='S';
+  validchars[2]='B';
+  validchars[3]='Y';
+  validchars[4]=0;
+ 
+  terminal_close_port();
+  terminal_open_port();
+  terminal_send("Read: [ENTER]Unread, [S]earch",0);
+  terminal_send_eol();
+  terminal_send("      [B]egin With, [Y]ours",0);
+  terminal_send_eol();
+  terminal_send_eol();
+  terminal_send(">> [_]",0);
+  terminal_send_left();
+  terminal_send_left();
+  while (c==255)
+    {
+      c=toupper(terminal_get_char());
+      if (_menu_valid_chars(c,validchars) == 255)
+	{
+	  terminal_beep();
+	  c=255;
+	}
+      else
+	{
+	  break;
+	}
+    }
+
+  switch(c)
+    {
+    case 0x9b:
+    case 0x0d:
+      _menu_confirm('_',"Last Unread");
+      break;
+    case 'S':
+      _menu_confirm('S',"Search");
+      break;
+    case 'B':
+      _menu_confirm('B',"Begin With");
+      break;
+    case 'Y':
+      _menu_confirm('Y',"Yours");
+      break;
+    }
+
+}
+
 unsigned char _menu_msg(unsigned char c)
 {
   switch(toupper(c))
@@ -259,6 +314,10 @@ unsigned char _menu_msg(unsigned char c)
     case 'J':
       _menu_confirm('J',"Jump to Board");
       _menu_msg_board_jump();
+      return 0;
+    case 'R':
+      _menu_confirm('R',"Read Messages");
+      _menu_msg_board_read();
       return 0;
     case 'N':
       _menu_confirm('N',"Next Board");
@@ -349,7 +408,8 @@ unsigned char _is_valid_char(unsigned char mode, unsigned char c)
 	      toupper(c)=='N' ||
 	      toupper(c)=='P' ||
 	      toupper(c)=='H' ||
-	      toupper(c)=='J');
+	      toupper(c)=='J' ||
+	      toupper(c)=='R');
       break;
     }
   return 0;

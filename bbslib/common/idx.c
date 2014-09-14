@@ -52,6 +52,15 @@ void idx_write(MsgFile* file, MsgIdxEntry* idx)
   write(file->idxfd,(MsgIdxEntry *)idx,sizeof(MsgIdxEntry));
 }
 
+int idx_read(MsgFile* file, int msgId, MsgIdxEntry* idx)
+{
+  assert(file!=NULL);
+  assert(file->idxfd>0);
+  assert(idx!=NULL);
+  lseek(file->idxfd,idx_offset(msgId),SEEK_SET);
+  return read(file->idxfd,(MsgIdxEntry *)idx,sizeof(MsgIdxEntry));
+}
+
 long idx_offset(long msgId)
 {
   return sizeof(MsgIdxEntry)*msgId+sizeof(long);

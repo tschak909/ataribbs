@@ -29,6 +29,7 @@ MMUFile mmufd=0;
 MMUEntry* mmuentry;
 char current_mboard;
 MsgFile* current_msgfile;
+long last_unread=0;
 
 void _menu_display_screen(unsigned char mode)
 {
@@ -65,6 +66,7 @@ void _menu_msg_open()
   mmufd = mboard_open("D1:MAIN.MMU");
   current_mboard = mboard_get_default(mmufd,mmuentry);
   current_msgfile = msg_open(mmuentry->itemFile);
+  last_unread=0;
   sprintf(output,"Current message board is %s",mmuentry->itemName);
   terminal_open_port();
   terminal_send(output,0);
@@ -252,6 +254,32 @@ void _menu_msg_board_jump()
   free(validchars);
 }
 
+void _msg_read(long msgId)
+{
+  MsgIdxEntry* idx;
+  MsgHeader* header;
+  char* buffer;
+  
+  idx=calloc(1,sizeof(MsgIdxEntry));
+  assert(idx!=NULL);
+  header=calloc(1,sizeof(MsgHeader));
+  assert(header!=NULL);
+  buffer=calloc(1,512);
+  assert(buffer!=NULL);
+
+  if (idx_read(current_msgfile,msgId,idx) != sizeof(MsgIdxEntry))
+    {
+      printf("Could not read index.");
+      return;
+    }
+
+
+
+  free(idx);
+  free(header);
+  free(buffer);
+}
+
 void _menu_msg_board_read()
 {
   char c=255;
@@ -293,6 +321,7 @@ void _menu_msg_board_read()
     case 0x9b:
     case 0x0d:
       _menu_confirm('_',"Last Unread");
+      _msg_read(last_unread);
       break;
     case 'S':
       _menu_confirm('S',"Search");

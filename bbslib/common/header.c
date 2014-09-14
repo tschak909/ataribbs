@@ -100,3 +100,12 @@ void header_write(MsgFile* file, MsgHeader* header)
   lseek(file->hdrfd,0,SEEK_END);
   write(file->hdrfd,(MsgHeader *)header,sizeof(MsgHeader));
 }
+
+int header_read(MsgFile* file, HeaderCursor cursor, MsgHeader* header)
+{
+  assert(file!=NULL);
+  assert(file->hdrfd>0);
+  assert(header!=NULL);
+  lseek(file->hdrfd,cursor,SEEK_SET);
+  return read(file->hdrfd,(MsgHeader*)header,sizeof(MsgHeader));
+}

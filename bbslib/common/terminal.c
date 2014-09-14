@@ -163,10 +163,22 @@ void terminal_send_char(char c)
 unsigned char terminal_send(const char* sendString, unsigned char willEcho)
 {
   unsigned char res;
+  unsigned char x;
   register int i;
-  register unsigned char j;
   for (i=0;i<strlen(sendString);++i)
     {
+      // Primitive XON/XOFF handling.
+      if (ser_get(&x) == SER_ERR_NO_DATA)
+	{
+	  if (x==0x13)
+	    {
+	      while (x!=0x11)
+		{
+		  ser_get(&x);
+		}
+	    }
+	  // end primitive XON/OFF
+	}
       if (terminal_line_counter_enable && terminal_is_an_eol(sendString[i]))
 	{
 	  if (terminal_line_counter > terminal_num_lines)
@@ -208,7 +220,6 @@ unsigned char terminal_send(const char* sendString, unsigned char willEcho)
 	}
       // Output to screen, let's see if I want to keep this here.
       putasciichar(sendString[i]);
-      j++;
     }
   terminal_flush();
   return 0;

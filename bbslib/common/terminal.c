@@ -164,6 +164,7 @@ unsigned char terminal_send(const char* sendString, unsigned char willEcho)
 {
   unsigned char res;
   register int i;
+  register unsigned char j;
   for (i=0;i<strlen(sendString);++i)
     {
       if (terminal_line_counter_enable && terminal_is_an_eol(sendString[i]))
@@ -207,6 +208,7 @@ unsigned char terminal_send(const char* sendString, unsigned char willEcho)
 	}
       // Output to screen, let's see if I want to keep this here.
       putasciichar(sendString[i]);
+      j++;
     }
   terminal_flush();
   return 0;

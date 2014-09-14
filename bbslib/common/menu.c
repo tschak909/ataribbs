@@ -254,11 +254,14 @@ void _menu_msg_board_jump()
   free(validchars);
 }
 
-void _msg_read(long msgId)
+void __msg_read(long msgId)
 {
   MsgIdxEntry* idx;
   MsgHeader* header;
   char* buffer;
+  size_t bodySize = 0;
+  size_t i = 0;
+  int abr = 0;
   
   idx=calloc(1,sizeof(MsgIdxEntry));
   assert(idx!=NULL);
@@ -267,13 +270,72 @@ void _msg_read(long msgId)
   buffer=calloc(1,512);
   assert(buffer!=NULL);
 
+  terminal_close_port();
+
   if (idx_read(current_msgfile,msgId,idx) != sizeof(MsgIdxEntry))
     {
       printf("Could not read index.");
       return;
     }
 
+  if (header_read(current_msgfile,idx->hdrOffset,header) != sizeof(MsgHeader))
+    {
+      printf("Could not read header.");
+      return;
+    }
 
+  // Output the header
+
+  terminal_open_port();
+  
+  terminal_enable_line_counter();
+
+  sprintf(buffer,"Message ID: %-5u",header->msgId);
+  terminal_send(buffer,0);
+  terminal_send_eol();
+
+  sprintf(buffer,"From: %s",header->from);
+  terminal_send(buffer,0);
+  terminal_send_eol();
+
+  sprintf(buffer,"Date/Time: 20%02u-%02u-%02u %02u:%02u:%02u",
+	  header->stamp.year,
+	  header->stamp.month,
+	  header->stamp.day,
+	  header->stamp.hours,
+	  header->stamp.minutes,
+	  header->stamp.seconds);
+  terminal_send(buffer,0);
+  terminal_send_eol();
+  
+  sprintf(buffer,"Subject: %s",header->subject);
+  terminal_send(buffer,0);
+  terminal_send_eol();
+
+  terminal_send_eol();
+  terminal_close_port();
+
+  // Output the body.
+  lseek(current_msgfile->msgfd,idx->bodyOffset,SEEK_SET);
+  read(current_msgfile->msgfd,&bodySize,sizeof(size_t));
+
+  for (i=0;i<bodySize;i=i+abr)
+    {
+      memset(buffer,0,512);
+      if (bodySize-i<511)
+	abr = read(current_msgfile->msgfd,buffer,bodySize-i);
+      else
+	abr = read(current_msgfile->msgfd,buffer,511);
+      terminal_open_port();
+      buffer[abr+1]=0;
+      terminal_send(buffer,0);
+      terminal_close_port();
+    }
+  
+  terminal_open_port();
+  terminal_disable_line_counter();
+  terminal_send_pagination_prompt();
+  terminal_close_port();
 
   free(idx);
   free(header);
@@ -286,11 +348,11 @@ void _menu_msg_board_read()
   char validchars[6];
 
   validchars[0]=0x9b;
-  validchars[0]=0x0d;
-  validchars[1]='S';
-  validchars[2]='B';
-  validchars[3]='Y';
-  validchars[4]=0;
+  validchars[1]=0x0d;
+  validchars[2]='S';
+  validchars[3]='B';
+  validchars[4]='Y';
+  validchars[5]=0;
  
   terminal_close_port();
   terminal_open_port();
@@ -321,7 +383,7 @@ void _menu_msg_board_read()
     case 0x9b:
     case 0x0d:
       _menu_confirm('_',"Last Unread");
-      _msg_read(last_unread);
+      __msg_read(1);
       break;
     case 'S':
       _menu_confirm('S',"Search");

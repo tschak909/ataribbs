@@ -16,6 +16,6 @@ HeaderCursor header_scan_find_network_id(MsgFile* file, HeaderCursor cursor, lon
 void header_scan_end(MsgFile* file);
 
 void header_write(MsgFile* file, MsgHeader* header);
-int header_read(MsgFile* file, HeaderCursor cursor, MsgHeader *header);
+int header_read(MsgFile* file, HeaderCursor cursor, MsgHeader* header);
 
 #endif

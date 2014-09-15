@@ -14,19 +14,35 @@ char* input_line_and_echo(unsigned char rubout, unsigned char size)
 {
   unsigned char c=0;
   unsigned char i=0;
+  unsigned char j=0;
   unsigned char buf[64];
 
   buf[0]='\0';
 
   while (is_a_return(c) == 0)
     {
-      c=terminal_get_and_echo(i,size,rubout);
+      c=terminal_get_and_echo(i,j,size,rubout);
       if (is_a_backspace(c)==1)
 	{
 	  if (i>0)
 	    {
 	      --i;
+	      j=i;
 	      buf[i] = '\0';
+	    }
+	}
+      else if (is_a_left(c) == 1)
+	{
+	  if (i>0)
+	    {
+	      --i;
+	    }
+	}
+      else if (is_a_right(c) == 1)
+	{
+	  if (i<j)
+	    {
+	      ++i;
 	    }
 	}
       else if (is_a_return(c) == 0)
@@ -35,6 +51,7 @@ char* input_line_and_echo(unsigned char rubout, unsigned char size)
 	    {
 	  buf[i] = c;
 	  ++i;
+	  j=i;
 	  buf[i] = '\0';
 	    }
 	  else

@@ -129,6 +129,16 @@ void putasciichar(char c)
     }
 }
 
+unsigned char is_a_left(unsigned char c)
+{
+  return c==0x1e; // terminal_get_char translates ansi left to atascii left
+}
+
+unsigned char is_a_right(unsigned char c)
+{
+  return c==0x1f; // terminal_get_char translates ansi right to atascii right.
+}
+
 unsigned char is_a_backspace(unsigned char c)
 {
   return c==0x7f || c==0x8 || c==0x7e;

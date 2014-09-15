@@ -34,6 +34,7 @@ unsigned char seropen_count;
 unsigned char terminal_line_counter;
 unsigned char terminal_line_counter_enable;
 unsigned char terminal_num_lines;
+unsigned char ansi_state_detect;
 
 unsigned char terminal_init()
 {
@@ -322,13 +323,39 @@ unsigned char terminal_get_char()
 	  return cgetc();
 	}
     }
-   return c;
+  if ((terminal_type == TERMINAL_TYPE_ASCII) && (ansi_state_detect==0) && (c==0x1b))
+    {
+      ansi_state_detect=1;
+      while (ser_get(&c)==SER_ERR_NO_DATA) { }
+    }
+  else
+    ansi_state_detect=0;
+
+  if ((terminal_type == TERMINAL_TYPE_ASCII) && (ansi_state_detect==1) && (c==0x5b))
+    {
+      ansi_state_detect=2;
+      while (ser_get(&c)==SER_ERR_NO_DATA) { }
+    }
+  else
+    ansi_state_detect=0;
+
+  if (terminal_type == TERMINAL_TYPE_ASCII && ansi_state_detect==2 && (c==0x43))
+    {
+      ansi_state_detect=0;
+      c=0x1f;
+    }
+  else if (terminal_type == TERMINAL_TYPE_ASCII && ansi_state_detect==2 && (c==0x44))
+    {
+      ansi_state_detect=0;
+      c=0x1e;
+    }
+  return c;
 }
 
-unsigned char terminal_get_and_echo(unsigned char i, unsigned char size, unsigned char rubout)
+unsigned char terminal_get_and_echo(unsigned char i, unsigned char j, unsigned char size, unsigned char rubout)
 {
   unsigned char c = terminal_get_char();
-   if (is_a_backspace(c)==1)
+  if (is_a_backspace(c)==1)
     {
       if (i>0)
 	{
@@ -337,6 +364,20 @@ unsigned char terminal_get_and_echo(unsigned char i, unsigned char size, unsigne
 	  putasciichar(rubout);
 	  ser_put(rubout);
 	  terminal_send_left();
+	}
+    }
+  else if (is_a_left(c)==1)
+    {
+      if (i>0)
+	{
+	  terminal_send_left();
+	}
+    }
+  else if (is_a_right(c)==1)
+    {
+      if (i<j)
+	{
+	  terminal_send_right();
 	}
     }
   else

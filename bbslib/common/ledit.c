@@ -68,7 +68,14 @@ void ledit_init()
 
 }
 
+void ledit_done()
+{
+  ledit_linkage_free();
+  ledit_line_free();
+}
+
 void ledit()
 {
-
+  ledit_init();
+  ledit_done();
 }

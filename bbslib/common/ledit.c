@@ -11,7 +11,7 @@ int ledit_num_lines=0;
 LineEditLinkage** linkages;
 LineEditLinkage** ledit_oldlinkages;
 
-void* ledit_alloc()
+void* ledit_line_alloc()
 {
   return calloc(1,sizeof(LineEditRecord));
 }
@@ -35,11 +35,28 @@ void * ledit_linkage_alloc(int numLines_to_add)
   return linkages;
 }
 
+void ledit_line_free()
+{
+  free(ledit_line);
+}
+
+void ledit_linkage_free()
+{
+  int i;
+
+  for (i=0;i<ledit_num_lines;++i)
+    {
+      free(linkages[i]);
+    }
+
+  free(linkages);
+}
+
 void ledit_init()
 {
   if (!ledit_line)
     {
-      ledit_alloc();
+      ledit_line = ledit_line_alloc();
     }
   else
     {
@@ -47,6 +64,8 @@ void ledit_init()
     }
 
   ledit_num_lines=0;
+  ledit_linkage_alloc(16);
+
 }
 
 void ledit()

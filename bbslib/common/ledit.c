@@ -18,6 +18,7 @@ int ledit_fd;
 
 int ledit_open()
 {
+  unlink("D1:LEDIT.TMP");
   ledit_fd=open("D1:LEDIT.TMP",O_RDWR|O_CREAT|O_TRUNC);
   return ledit_fd;
 }
@@ -127,7 +128,7 @@ unsigned char ledit_get(int line)
   assert(line<ledit_num_lines);
   assert(linkages!=NULL);
   assert(linkages[line]!=NULL);
-  return 0;
+  return _ledit_get(*(linkages[line]));
 }
 
 void ledit_done()
@@ -135,15 +136,4 @@ void ledit_done()
   ledit_close();
   ledit_linkage_free();
   ledit_line_free();
-}
-
-void ledit()
-{
-  ledit_init();
-  ledit_insert("This is a test to see how well this actually works.");
-  ledit_insert("Line 2");
-  ledit_insert("Line 3 is here.");
-  ledit_insert("Line 4 is right here.");
-  ledit_insert("Line 5 is HERE!");
-  ledit_done();
 }

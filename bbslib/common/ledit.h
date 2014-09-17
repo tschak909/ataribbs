@@ -13,6 +13,11 @@ typedef struct {
 
 typedef int LineEditLinkage;
 
+void ledit_init();
+void ledit_done();
+void ledit_insert(const char* text);
+unsigned char ledit_get(int line);
+
 void ledit();
 
 #endif /* LEDIT_H */

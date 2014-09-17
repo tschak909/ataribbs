@@ -11,12 +11,8 @@ typedef struct {
   char line[LEDIT_LINE_SIZE];
 } LineEditRecord;
 
-struct LineEditLinkage; 
+typedef int LineEditLinkage;
 
-typedef struct LineEditLinkage {
-  struct LineEditLinkage* prev;
-  struct LineEditLinkage* next;
-  int lineNo;
-} LineEditLinkage;
+void ledit();
 
 #endif /* LEDIT_H */

@@ -64,7 +64,7 @@ void ledit_insert_node(int lineNo, int pos)
 {
   LineEditNode* newnode;
   LineEditNode* temp1;
-  int i;
+  int i=1;
 
   newnode=ledit_create_node(lineNo);
   temp1=ledit_head;
@@ -227,6 +227,25 @@ void ledit_insert_at_end(char* line)
     }
 
   ledit_insert_node_at_end(ledit_line_count);
+  ledit_line_count++;
+}
+
+void ledit_insert_after_line(int lineNo, char* line)
+{
+  assert(leditfd>0);
+  assert(ledit_line!=NULL);
+  memset(ledit_line,0,sizeof(LineEditRecord));
+  lseek(leditfd,0,SEEK_END);
+  ledit_line->lineNo=ledit_line_count;
+  strcpy(ledit_line->line,line);
+
+  if (write(leditfd,(LineEditRecord* )ledit_line,sizeof(LineEditRecord)) != sizeof(LineEditRecord))
+    {
+      perror("Could not write line to " LEDIT_TEMP_FILE);
+      abort();
+    }
+
+  ledit_insert_node(ledit_line_count,lineNo);
   ledit_line_count++;
 }
 

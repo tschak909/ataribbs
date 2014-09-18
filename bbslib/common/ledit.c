@@ -10,130 +10,146 @@
 #include <assert.h>
 #include "ledit.h"
 
-LineEditRecord* ledit_line;
-int ledit_num_lines=0;
-LineEditLinkage** linkages;
-LineEditLinkage** ledit_oldlinkages;
-int ledit_fd;
+LineEditNode* ledit_head = NULL; 
+LineEditNode* ledit_tail = NULL;
+int ledit_node_count = 0;
 
-int ledit_open()
+LineEditNode* ledit_create_node(int lineNo)
 {
-  unlink("D1:LEDIT.TMP");
-  ledit_fd=open("D1:LEDIT.TMP",O_RDWR|O_CREAT|O_TRUNC);
-  return ledit_fd;
-}
+  LineEditNode* newNode;
+  newNode=(LineEditNode *)malloc(sizeof(LineEditNode));
 
-void ledit_close()
-{
-  assert(ledit_fd>0);
-  close(ledit_fd);
-}
-
-void* ledit_line_alloc()
-{
-  return calloc(1,sizeof(LineEditRecord));
-}
-
-void * ledit_linkage_alloc(int numLines_to_add)
-{
-  size_t linkagePointersToAlloc;
-  int oldNumLines = ledit_num_lines;
-  int i;
-
-  ledit_num_lines = ledit_num_lines+numLines_to_add;
-
-  ledit_oldlinkages=linkages; // Save it in case realloc fails.
-  linkagePointersToAlloc = sizeof(LineEditLinkage *)*ledit_num_lines;
-  linkages = realloc(linkages,linkagePointersToAlloc);
-
-  for (i=oldNumLines;i<ledit_num_lines;++i)
+  if (!newNode)
     {
-      linkages[i]=calloc(1,sizeof(LineEditLinkage));
-    }
-  return linkages;
-}
-
-void ledit_line_free()
-{
-  free(ledit_line);
-}
-
-void ledit_linkage_free()
-{
-  int i;
-
-  for (i=0;i<ledit_num_lines;++i)
-    {
-      free(linkages[i]);
-    }
-
-  free(linkages);
-}
-
-void ledit_init()
-{
-  if (!ledit_line)
-    {
-      ledit_line = ledit_line_alloc();
-    }
-  else
-    {
-      memset(ledit_line,0,sizeof(LineEditRecord));
-    }
-
-  ledit_num_lines=0;
-  ledit_linkage_alloc(16);
-
-  if (ledit_open() < 0)
-    {
-      perror("Could not open D1:LEDIT.TMP");
+      perror("could not allocate memory");
       abort();
     }
 
+  newNode->lineNo = lineNo;
+  newNode->next = NULL;
+  newNode->prev = NULL;
+  return newNode;
+
 }
 
-void ledit_insert(const char* text)
+void ledit_create_initial_nodes()
 {
-  assert(ledit_fd>0);
-  assert(text!=NULL);
-  assert(ledit_line!=NULL);
-  assert(linkages!=NULL);
-  lseek(ledit_fd,0,SEEK_END);
-  ledit_line->lineNo=ledit_num_lines;
-  strcpy(ledit_line->line,text);
-  write(ledit_fd,(LineEditRecord *)ledit_line,sizeof(LineEditRecord));
-  *(linkages[ledit_num_lines])=ledit_num_lines;
-  ledit_num_lines++;
-}
-
-unsigned char _ledit_get_line_offset(int line)
-{
-  return sizeof(LineEditRecord)*line;
-}
-
-unsigned char _ledit_get(int line)
-{
-  assert(ledit_fd>0);
-  lseek(ledit_fd,_ledit_get_line_offset(line),SEEK_SET);
-  if (read(ledit_fd,(LineEditRecord *)ledit_line,sizeof(LineEditRecord)) != sizeof(LineEditRecord))
+  ledit_head = (LineEditNode*)malloc(sizeof(LineEditNode));
+  if (!ledit_head)
     {
-      // Failed.
-      return 0;
+      perror("Could not allocate head node");
+      abort();
     }
-  return 1;
+
+  ledit_tail = (LineEditNode*)malloc(sizeof(LineEditNode));
+  if (!ledit_tail)
+    {
+      perror("Could not allocate tail node");
+      abort();
+    }
+
+  ledit_head->lineNo=ledit_tail->lineNo=0;
+  ledit_head->next=ledit_tail;
+  ledit_tail->prev=ledit_head;
+  ledit_head->prev=ledit_tail->next=NULL;
 }
 
-unsigned char ledit_get(int line)
+void ledit_insert(int lineNo, int pos)
 {
-  assert(line<ledit_num_lines);
-  assert(linkages!=NULL);
-  assert(linkages[line]!=NULL);
-  return _ledit_get(*(linkages[line]));
+  LineEditNode* newnode;
+  LineEditNode* temp1;
+  int i;
+
+  newnode=ledit_create_node(lineNo);
+  temp1=ledit_head;
+
+  while (temp1)
+    {
+      if (i==pos)
+	{
+	  newnode->next = temp1->next;
+	  newnode->prev = temp1;
+	  temp1->next->prev = newnode;
+	  temp1->next = newnode;
+	  ledit_node_count++;
+	  break;
+	}
+      temp1=temp1->next;
+      i++;
+    }
+  return;
 }
 
-void ledit_done()
+void ledit_insert_at_start(int lineNo)
 {
-  ledit_close();
-  ledit_linkage_free();
-  ledit_line_free();
+  LineEditNode* newnode = ledit_create_node(lineNo);
+  newnode->next = ledit_head->next;
+  newnode->prev = ledit_tail->prev;
+  ledit_tail->prev->next = newnode;
+  ledit_tail->prev = newnode;
+  ledit_node_count++;
+}
+
+void ledit_insert_at_end(int lineNo)
+{
+  LineEditNode* newnode = ledit_create_node(lineNo);
+  newnode->next=ledit_tail;
+  newnode->prev=ledit_tail->prev;
+  ledit_tail->prev->next = newnode;
+  ledit_tail->prev = newnode;
+  ledit_node_count++;
+}
+
+void delete(int lineNo)
+{
+  LineEditNode* temp1;
+  LineEditNode* temp2;
+  temp1 = ledit_head->next;
+  while (temp1 != ledit_tail)
+    {
+      if (temp1->lineNo == lineNo)
+	{
+	  temp2=temp1;
+	  temp1->prev->next = temp1->next;
+	  temp1->next->prev = temp1->prev;
+	  free(temp2);
+	  ledit_node_count--;
+	  return;
+	}
+      temp1 = temp1->next;
+    }
+  perror("Given node is not present in list.");
+  return;
+}
+
+void ledit_delete_list()
+{
+  LineEditNode* temp2;
+  LineEditNode* temp1 = ledit_head->next;
+  while (temp1!=ledit_tail)
+    {
+      temp1->prev->next=temp1->next;
+      temp1->next->prev=temp1->prev;
+      temp2=temp1;
+      free(temp1);
+      temp1=temp2->next;
+    }
+  ledit_node_count=0;
+  return;
+}
+
+void ledit_search_node(int lineNo)
+{
+  LineEditNode* temp = ledit_head->next;
+  while (temp!=ledit_tail)
+    {
+      if (temp->lineNo==lineNo)
+	{
+	  // Node is present
+	  return;
+	}
+      temp=temp->next;
+    }
+  // Node is not present
+  return;
 }

@@ -90,9 +90,9 @@ void ledit_insert_node_at_start(int lineNo)
 {
   LineEditNode* newnode = ledit_create_node(lineNo);
   newnode->next = ledit_head->next;
-  newnode->prev = ledit_tail->prev;
-  ledit_tail->prev->next = newnode;
-  ledit_tail->prev = newnode;
+  newnode->prev = ledit_head;
+  ledit_head->next->prev = newnode;
+  ledit_head->next = newnode;
   ledit_node_count++;
 }
 
@@ -192,6 +192,25 @@ void ledit_close_temp()
   close(leditfd);
 }
 
+void ledit_insert_at_beginning(char* line)
+{
+  assert(leditfd>0);
+  assert(ledit_line!=NULL);
+  memset(ledit_line,0,sizeof(LineEditRecord));
+  lseek(leditfd,0,SEEK_END);
+  ledit_line->lineNo=ledit_line_count;
+  strcpy(ledit_line->line,line);
+
+  if (write(leditfd,(LineEditRecord* )ledit_line,sizeof(LineEditRecord)) != sizeof(LineEditRecord))
+    {
+      perror("Could not write line to " LEDIT_TEMP_FILE);
+      abort();
+    }
+
+  ledit_insert_node_at_start(ledit_line_count);
+  ledit_line_count++;
+}
+
 void ledit_insert_at_end(char* line)
 {
   assert(leditfd>0);
@@ -199,7 +218,6 @@ void ledit_insert_at_end(char* line)
   memset(ledit_line,0,sizeof(LineEditRecord));
   lseek(leditfd,0,SEEK_END);
   ledit_line->lineNo=ledit_line_count;
-  printf("Writing line: %u\n",ledit_line_count);
   strcpy(ledit_line->line,line);
 
   if (write(leditfd,(LineEditRecord* )ledit_line,sizeof(LineEditRecord)) != sizeof(LineEditRecord))

@@ -21,7 +21,7 @@ void ledit_init();
 void ledit_done();
 void ledit_insert_at_end(char* line);
 void ledit_debug();
-// void ledit_insert_line_at_beginning(const char* text);
+void ledit_insert_at_beginning(char* text);
 // void ledit_insert_line_after(int lineNo, const char* text);
 // void ledit_insert_line_replace(int lineNo, const char* text);
 #endif /* LEDIT_H */

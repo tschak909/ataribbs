@@ -122,14 +122,15 @@ void ledit_insert_node_at_end(int lineNo)
   ledit_node_count++;
 }
 
-void ledit_delete_node(int lineNo)
+void ledit_delete_node(int pos)
 {
   LineEditNode* temp1;
   LineEditNode* temp2;
+  int i=1;
   temp1 = ledit_head->next;
   while (temp1 != ledit_tail)
     {
-      if (temp1->lineNo == lineNo)
+      if (i==pos)
 	{
 	  temp2=temp1;
 	  temp1->prev->next = temp1->next;
@@ -139,6 +140,7 @@ void ledit_delete_node(int lineNo)
 	  return;
 	}
       temp1 = temp1->next;
+      ++i;
     }
   perror("Given node is not present in list.");
   return;
@@ -322,6 +324,25 @@ char* ledit_get_first_line()
 {
   ledit_ptr = ledit_head->next;
   return ledit_get_next_line();
+}
+
+void ledit_replace_line(int lineNo, const char* text)
+{
+  assert(leditfd>0);
+  assert(ledit_line!=NULL);
+  lseek(leditfd,0,SEEK_END);
+  ledit_line->lineNo=ledit_line_count;
+  strcpy(ledit_line->line,text);
+
+  if (write(leditfd,(LineEditRecord* )ledit_line,sizeof(LineEditRecord)) != sizeof(LineEditRecord))
+    {
+      perror("Could not write line to " LEDIT_TEMP_FILE);
+      abort();
+    }
+
+  ledit_delete_node(lineNo);
+  ledit_insert_node(ledit_line_count,lineNo);
+  ledit_line_count++;  
 }
 
 void ledit_init()

@@ -60,6 +60,21 @@ void ledit_create_initial_nodes()
   ledit_head->prev=ledit_tail->next=NULL;
 }
 
+void ledit_delete_initial_nodes()
+{
+  if (ledit_head)
+    {
+      free(ledit_head);
+      ledit_head = NULL;
+    }
+
+  if (ledit_tail)
+    {
+      free(ledit_tail);
+      ledit_tail = NULL;
+    }
+}
+
 void ledit_insert_node(int lineNo, int pos)
 {
   LineEditNode* newnode;
@@ -298,5 +313,7 @@ void ledit_init()
 void ledit_done()
 {
   ledit_close_temp();
+  ledit_delete_list();
+  ledit_delete_initial_nodes();
   ledit_dealloc_line_buffer();
 }

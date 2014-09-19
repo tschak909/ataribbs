@@ -14,6 +14,7 @@
 #include "header.h"
 #include "user.h"
 #include "input.h"
+#include "ledit.h"
 #include <serial.h>
 #include <6502.h>
 #include <string.h>
@@ -398,6 +399,37 @@ void _menu_msg_board_read()
 
 }
 
+void _menu_enter_message()
+{
+  char* subject;
+  char* line;
+
+  line=calloc(1,32);
+  subject=calloc(1,32);
+  ledit_init();
+  terminal_send("Subject:",0);
+  terminal_send_eol();
+  subject = prompt_line(1,32);
+  
+  terminal_send_eol();
+  terminal_send("Enter your message, each line seperated by <RETURN>",0);
+  terminal_send_eol();
+  terminal_send("<RETURN> by itself presents edit menu.",0);
+  terminal_send_eol();
+  terminal_send_eol();
+
+  line[0]=1;
+  while (line[0]!=0)
+    {
+      line=prompt_line(1,36);
+      ledit_insert_at_end(line);
+    }
+  free(line);
+  free(subject);
+  ledit_done();
+
+}
+
 unsigned char _menu_msg(unsigned char c)
 {
   switch(toupper(c))
@@ -405,6 +437,10 @@ unsigned char _menu_msg(unsigned char c)
     case 'J':
       _menu_confirm('J',"Jump to Board");
       _menu_msg_board_jump();
+      return 0;
+    case 'E':
+      _menu_confirm('E',"Enter new Message");
+      _menu_enter_message();
       return 0;
     case 'R':
       _menu_confirm('R',"Read Messages");
@@ -495,6 +531,7 @@ unsigned char _is_valid_char(unsigned char mode, unsigned char c)
       break;
     case MODE_MSG_MENU:
       return (toupper(c)=='G' ||
+	      toupper(c)=='E' ||
 	      toupper(c)=='X' ||
 	      toupper(c)=='N' ||
 	      toupper(c)=='P' ||

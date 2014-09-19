@@ -14,6 +14,7 @@
 
 LineEditNode* ledit_head = NULL; 
 LineEditNode* ledit_tail = NULL;
+LineEditNode* ledit_ptr = NULL;
 int ledit_node_count = 0;
 
 LineEditRecord* ledit_line = NULL;
@@ -301,6 +302,26 @@ void ledit_debug()
       ptr = ptr->next;
     }
 
+}
+
+char* ledit_get_next_line()
+{
+  char buf[40];
+  assert(ledit_ptr!=NULL);
+
+  if (ledit_ptr==ledit_tail)
+    return NULL;
+
+  ledit_read_line(ledit_ptr->lineNo,buf);  
+  ledit_ptr=ledit_ptr->next;
+
+  return strdup(buf);
+}
+
+char* ledit_get_first_line()
+{
+  ledit_ptr = ledit_head->next;
+  return ledit_get_next_line();
 }
 
 void ledit_init()

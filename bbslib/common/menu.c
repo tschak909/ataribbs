@@ -399,14 +399,40 @@ void _menu_msg_board_read()
 
 }
 
+void _menu_enter_message_insert_into(char* line)
+{
+  assert(line!=NULL);
+  line[0]=1;
+  while (line[0]!=0)
+    {
+      terminal_open_port();
+      line=prompt_line(1,36);
+      terminal_close_port();
+      ledit_insert_at_end(line);
+    }
+}
+
 void _menu_enter_message()
 {
   char* subject;
   char* line;
+  char c=255;
+  char validchars[8];
 
+  validchars[0]=0x9b;
+  validchars[1]=0x0d;
+  validchars[2]='C';
+  validchars[3]='S';
+  validchars[4]='I';
+  validchars[5]='E';
+  validchars[6]='R';
+  validchars[7]='A';
+
+  terminal_close_port();
   line=calloc(1,32);
   subject=calloc(1,32);
   ledit_init();
+  terminal_open_port();
   terminal_send("Subject:",0);
   terminal_send_eol();
   subject = prompt_line(1,32);
@@ -418,12 +444,73 @@ void _menu_enter_message()
   terminal_send_eol();
   terminal_send_eol();
 
-  line[0]=1;
-  while (line[0]!=0)
+  _menu_enter_message_insert_into(line);
+
+  terminal_close_port();
+
+  // The Editing menu
+  while (c==255)
     {
-      line=prompt_line(1,36);
-      ledit_insert_at_end(line);
+      terminal_open_port();
+      terminal_send_eol();
+      terminal_send("<RETURN> Continues editing.",0);
+      terminal_send_eol();
+      terminal_send_eol();
+      terminal_send("Options: [C]ontinue [S]ave [I]nsert",0);
+      terminal_send_eol();
+      terminal_send("         [E]dit [R]ead [A]bort",0);
+      terminal_send_eol();
+      terminal_send_eol();
+      terminal_send(">> [_]",0);
+      terminal_send_left();
+      terminal_send_left();
+      
+      while (c==255)
+	{
+	  c=toupper(terminal_get_char());
+	  if (_menu_valid_chars(c,validchars) == 255)
+	    {
+	      terminal_beep();
+	      c=255;
+	    }
+	  else
+	    {
+	      break;
+	    }
+	}
+      
+      switch(c)
+	{
+	case 0x9b:
+	case 0x0d:
+	case 'C':
+	  _menu_confirm('C',"Continue");
+	  _menu_enter_message_insert_into(line);
+	  break;
+	case 'S':
+	  _menu_confirm('S',"Save");
+	  break;
+	case 'I':
+	  _menu_confirm('I',"Insert");
+	  break;
+	case 'E':
+	  _menu_confirm('E',"Edit");
+	  break;
+	case 'R':
+	  _menu_confirm('R',"Read");
+	  break;
+	case 'A':
+	  _menu_confirm('A',"Abort");
+	  break;
+	}
+
+      // Circle back around if we're not aborting.
+      if (c=='A')
+	c=0;
+      else
+	c=255;
     }
+
   free(line);
   free(subject);
   ledit_done();

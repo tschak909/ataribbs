@@ -388,6 +388,12 @@ unsigned char terminal_get_and_echo(unsigned char i, unsigned char j, unsigned c
 	  ser_put(c);
 	}
     }
+
+  if (terminal_type == TERMINAL_TYPE_ASCII && is_an_ascii_cr(c))
+    {
+      terminal_send_eol();
+    }
+
   return c;
 }
 

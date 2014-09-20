@@ -51,6 +51,7 @@ unsigned char login(char* name)
 {
   UserRecord record;
   char* uname = strupper(name);
+  terminal_close_port();
   if (user_lookup(uname,&record) == 0)
     {
       char* from;
@@ -61,6 +62,7 @@ unsigned char login(char* name)
       TimeDate firstLogon;
       char userid[40];
       timedate(&firstLogon);
+      terminal_open_port();
       terminal_send("You seem to be a new user.",0);
       terminal_send_eol();
       terminal_send("Where are you calling from?",0);
@@ -100,10 +102,13 @@ unsigned char login(char* name)
       record.security_level=10;
       record.firstLogon=firstLogon;
       record.lastLogon=firstLogon;
+      terminal_close_port();
       user_add(&record);
       sprintf(userid,"Your User ID is %u",record.user_id);
+      terminal_open_port();
       terminal_send(userid,0);
       terminal_send_eol();
+      user_set(&record);
       return 1;
     }
   else
@@ -113,6 +118,7 @@ unsigned char login(char* name)
       unsigned short passwordHash;
       char tmp[50];
       TimeDate td;
+      terminal_open_port();
       while (retry<3)
 	{
 	  terminal_send("Password:",0);
@@ -126,7 +132,10 @@ unsigned char login(char* name)
 	      sprintf(tmp,"\n\nYou last logged in on 20%02u-%02u-%02u @ %02u:%02u:%02u\n\n",record.lastLogon.year,record.lastLogon.month,record.lastLogon.day,record.lastLogon.hours,record.lastLogon.minutes,record.lastLogon.seconds);
 	      timedate(&td);
 	      record.lastLogon = td;
+	      terminal_close_port();
 	      user_update(&record);
+	      user_set(&record);
+	      terminal_open_port();
 	      terminal_send(tmp,0);
 	      terminal_send_eol();
 	      return 1; 
@@ -156,9 +165,6 @@ void bbs()
   sleep(1);
   terminal_send_clear_screen();
   terminal_send_screen("WELCOME");
-  terminal_send("This BBS is still being developed.",0);
-  terminal_send_eol();
-  terminal_send("For now, I just log names.",0);
   terminal_send_eol();
 
   while (name[0] == 0)
@@ -190,6 +196,7 @@ void bbs()
   terminal_send_eol();
   terminal_send("More will happen soon!",0);
   terminal_send_eol();
+  user_logoff();
   terminal_hang_up();
   log(LOG_LEVEL_NOTICE,"Hung up.");
   sleep(2);

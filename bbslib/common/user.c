@@ -15,6 +15,7 @@
 #define FALSE 0
 
 int userscanfd;
+UserRecord* user_record = NULL;
 
 unsigned short _user_name_to_hash(const char* username)
 {
@@ -271,4 +272,28 @@ void user_scan_end()
 int user_scan_next(UserRecord* record)
 {
   return read(userscanfd,(UserRecord *)record,sizeof(UserRecord));
+}
+
+void user_set(UserRecord* record)
+{
+  assert(record!=NULL);
+  if (user_record!=NULL)
+    {
+      free(user_record);
+    }
+
+  user_record=calloc(1,sizeof(UserRecord));
+  memcpy(user_record,record,sizeof(UserRecord));
+}
+
+void user_logoff()
+{
+  if (user_record)
+    free(user_record);
+  user_record=NULL;
+}
+
+UserRecord* user_get()
+{
+  return user_record;
 }

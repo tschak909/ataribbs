@@ -36,5 +36,8 @@ unsigned char user_update(UserRecord* record);
 void user_scan_begin();
 void user_scan_end();
 int user_scan_next(UserRecord* record);
+void user_set(UserRecord* record);
+UserRecord* user_get();
+void user_logoff();
 
 #endif USER_H

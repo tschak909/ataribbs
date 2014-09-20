@@ -184,6 +184,8 @@ unsigned char terminal_send(const char* sendString, unsigned char willEcho)
 	{
 	  if (terminal_line_counter > terminal_num_lines)
 	    {
+	      terminal_close_port();
+	      terminal_open_port();
 	      terminal_send_pagination_prompt();
 	    }
 	  else
@@ -444,6 +446,8 @@ void terminal_send_eol()
     {
       if (terminal_line_counter > terminal_num_lines)
 	{
+	  terminal_close_port();
+	  terminal_open_port();
 	  terminal_send_pagination_prompt();
 	}
       else
@@ -638,6 +642,7 @@ void terminal_send_pagination_prompt()
   terminal_send_eol();
   terminal_reset_line_counter();
   terminal_enable_line_counter();
+  terminal_close_port();
 }
 
 void terminal_beep()

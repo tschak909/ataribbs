@@ -15,6 +15,10 @@
 #include "idx.h"
 #include "header.h"
 
+long msg_body_lengthPos;
+MsgFile* msg_put_file;
+size_t msg_put_len;
+
 int _msg_open(const char* msgfile, const char* extension)
 {
   char tmp[32];
@@ -142,4 +146,59 @@ unsigned char msg_get(MsgFile* file, long msgId, MsgHeader* header, char* body)
   
   return msgId;
 
+}
+
+void msg_put_begin(MsgFile* file, MsgHeader* header)
+{
+  MsgIdxEntry idx;
+  size_t len=0;
+  long nummsgs,hdrcurPos,idxcurPos,msgcurPos;
+   
+  assert(file!=NULL);
+  assert(header!=NULL);
+  assert(header->msgId==0);
+
+  msg_put_file = file;
+
+  nummsgs = idx_get_num_msgs(file);
+  nummsgs++;
+  hdrcurPos = lseek(file->hdrfd,0,SEEK_END);
+  msgcurPos = lseek(file->msgfd,0,SEEK_END);
+  idxcurPos = lseek(file->idxfd,0,SEEK_END);
+
+  msg_body_lengthPos = msgcurPos;
+
+  /* fill out the index record */
+  idx.msgId = nummsgs;
+  idx.bodyOffset = msgcurPos;
+  idx.hdrOffset = hdrcurPos;
+  idx_write(file,&idx);
+  
+  /* fill out the rest of the header. */
+  header->msgId = nummsgs;
+  header_write(file,header);
+
+  idx_put_num_msgs(file,nummsgs);
+
+  // Write out a 0 len, to be replaced at msg_put_end()
+  write(file->msgfd,&len,sizeof(size_t)); // will always be 0.
+
+  return;
+}
+
+void msg_put_end()
+{
+  lseek(msg_put_file->msgfd,msg_body_lengthPos,SEEK_SET);
+  write(msg_put_file->msgfd,&msg_put_len,sizeof(size_t));
+}
+
+void msg_put_chunked(char* line)
+{
+  size_t len = strlen(line);
+  assert(line!=NULL);
+  line[len] = '\r';
+  line[len+1] = '\n';
+  line[len+2] = 0;
+  write(msg_put_file->msgfd,line,strlen(line));
+  msg_put_len+=strlen(line);
 }

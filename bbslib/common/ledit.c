@@ -358,4 +358,6 @@ void ledit_done()
   ledit_delete_list();
   ledit_delete_initial_nodes();
   ledit_dealloc_line_buffer();
+  ledit_line_count=0;
+  ledit_node_count=0;
 }

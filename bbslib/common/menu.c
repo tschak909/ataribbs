@@ -412,6 +412,27 @@ void _menu_enter_message_insert_into(char* line)
     }
 }
 
+void _menu_enter_message_save(char* subject)
+{
+  MsgHeader* entry;
+  char* line;
+  
+  entry = calloc(1,sizeof(MsgHeader));
+  strcpy(entry->from,user_get()->username);
+  strcpy(entry->subject,subject);
+  entry->msgId=0;
+  timedate(&entry->stamp);
+  msg_put_begin(current_msgfile,entry);
+  msg_put_chunked(ledit_get_first_line());
+  while (line = ledit_get_next_line())
+    {
+      msg_put_chunked(line);
+    }
+  msg_put_end();
+  
+  free(entry);
+}
+
 void _menu_enter_message()
 {
   char* subject;
@@ -433,6 +454,9 @@ void _menu_enter_message()
   subject=calloc(1,32);
   ledit_init();
   terminal_open_port();
+  terminal_send("Name: ",0);
+  terminal_send(user_get()->username,0);
+  terminal_send_eol();
   terminal_send("Subject:",0);
   terminal_send_eol();
   subject = prompt_line(1,32);
@@ -486,29 +510,38 @@ void _menu_enter_message()
 	case 'C':
 	  _menu_confirm('C',"Continue");
 	  _menu_enter_message_insert_into(line);
+	  c=255;
 	  break;
 	case 'S':
 	  _menu_confirm('S',"Save");
+	  terminal_send_eol();
+	  terminal_send_eol();
+	  terminal_send("Saving...",0);
+	  terminal_close_port();
+	  _menu_enter_message_save(subject);
+	  terminal_open_port();
+	  terminal_send("Done.",0);
+	  terminal_send_eol();
+	  terminal_send_eol();
+	  c=0;
 	  break;
 	case 'I':
 	  _menu_confirm('I',"Insert");
+	  c=255;
 	  break;
 	case 'E':
 	  _menu_confirm('E',"Edit");
+	  c=255;
 	  break;
 	case 'R':
 	  _menu_confirm('R',"Read");
+	  c=255;
 	  break;
 	case 'A':
 	  _menu_confirm('A',"Abort");
+	  c=0;
 	  break;
 	}
-
-      // Circle back around if we're not aborting.
-      if (c=='A')
-	c=0;
-      else
-	c=255;
     }
 
   free(line);

@@ -13,6 +13,7 @@
 #include <bbslib/common/user.h>
 #include <bbslib/common/types.h>
 #include <bbslib/common/menu.h>
+#include <bbslib/common/ledit.h>
 
 PrinterFlags *config_printflags = NULL;
 SerialPortFlags *config_serialportflags = NULL; 
@@ -154,9 +155,6 @@ unsigned char login(char* name)
 void bbs()
 {
   char* name;
-  char* password;
-  char logstring[100];
-  char i;
 
   name[0]=0;
   printf("bbs()\n\n");
@@ -174,12 +172,12 @@ void bbs()
       name = prompt_line(1,32);
       terminal_send_eol();
       if (name[0] != 0)
-	break;
+  	break;
       else
-	{
-	  terminal_send_up();
-	  terminal_send_up();
-	}
+  	{
+  	  terminal_send_up();
+  	  terminal_send_up();
+  	}
     }
 
   if (login(name) == 1)
@@ -187,7 +185,7 @@ void bbs()
       char login[40];
       sprintf(login,"%s logged in.",name);
       log(LOG_LEVEL_NOTICE,login);
-      filemenu_show("BULLETIN");    
+      filemenu_show("BULLETIN");
     }
 
   menu();

@@ -427,6 +427,7 @@ void _menu_enter_message_save(char* subject)
   while (line = ledit_get_next_line())
     {
       msg_put_chunked(line);
+      free(line); // strdup, dummy! 
     }
   msg_put_end();
   

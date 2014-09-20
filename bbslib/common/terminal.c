@@ -22,7 +22,7 @@
 #define MODEM_RESET_RESPONSE "OK"
 #define MODEM_SEND_NUM_RETRIES 4
 #define MODEM_RECIEVE_TIMEOUT 2
-#define TERMINAL_FILE_SEND_BUFFER_SIZE 1024
+#define TERMINAL_FILE_SEND_BUFFER_SIZE 256
 
 extern PrinterFlags *config_printflags;
 extern SerialPortFlags *config_serialportflags;
@@ -384,7 +384,7 @@ unsigned char terminal_get_and_echo(unsigned char i, unsigned char j, unsigned c
     }
   else
     {
-      if (i<size)
+       if (i<size)
 	{
 	  putasciichar(c);
 	  ser_put(c);
@@ -675,5 +675,6 @@ void terminal_enable_line_counter()
 
 void terminal_disable_line_counter()
 {
+  terminal_line_counter=0;
   terminal_line_counter_enable=0;
 }

@@ -436,6 +436,33 @@ void _menu_enter_message_save(char* subject)
   free(entry);
 }
 
+void _menu_enter_message_insert()
+{
+}
+
+void _menu_enter_message_edit()
+{
+
+}
+
+void _menu_enter_message_read()
+{
+  int i=2;
+  char buf[50];
+  char* line;
+  sprintf(buf,"%3u:%s",1,ledit_get_first_line());
+  terminal_send(buf,0);
+  terminal_send_eol();
+  while (line=ledit_get_next_line())
+    {
+      sprintf(buf,"%3u:%s",i,line);
+      terminal_send(buf,0);
+      terminal_send_eol();
+      free(line);
+      i++;
+    }  
+}
+
 void _menu_enter_message()
 {
   char* subject;
@@ -531,14 +558,17 @@ void _menu_enter_message()
 	case 'I':
 	  _menu_confirm('I',"Insert");
 	  c=255;
+	  _menu_enter_message_insert();
 	  break;
 	case 'E':
 	  _menu_confirm('E',"Edit");
 	  c=255;
+	  _menu_enter_message_edit();
 	  break;
 	case 'R':
 	  _menu_confirm('R',"Read");
 	  c=255;
+	  _menu_enter_message_read();
 	  break;
 	case 'A':
 	  _menu_confirm('A',"Abort");

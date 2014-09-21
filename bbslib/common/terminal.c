@@ -35,6 +35,7 @@ unsigned char terminal_line_counter;
 unsigned char terminal_line_counter_enable;
 unsigned char terminal_num_lines;
 unsigned char ansi_state_detect;
+unsigned char terminal_chat_sysop_is_speaking=0;
 
 unsigned char terminal_init()
 {
@@ -352,6 +353,87 @@ unsigned char terminal_get_char()
       c=0x1e;
     }
   return c;
+}
+
+unsigned char terminal_get_char_chat(char* username)
+{
+  unsigned char c;
+  while (ser_get(&c) == SER_ERR_NO_DATA) 
+    { /* Put timer tick in here. */ 
+      if (kbhit())
+	{
+	  if (!terminal_chat_sysop_is_speaking)
+	    {
+	      terminal_chat_sysop_is_speaking=1;
+	      terminal_send_eol();
+	      terminal_send_eol();
+	      terminal_send("SysOp: ",0);
+	    }
+	  terminal_flush();
+	  c=cgetc();
+	  if (terminal_type == TERMINAL_TYPE_ASCII && c==0x9b)
+	    {
+	      ser_put(0x0a);
+	      return 0x0d;
+	    }
+	  if (terminal_type == TERMINAL_TYPE_ASCII && is_a_left(c))
+	    {
+	      terminal_send_left();
+	      return 0xff;
+	    }
+	  if (terminal_type == TERMINAL_TYPE_ASCII && is_a_right(c))
+	    {
+	      terminal_send_right();
+	      return 0xff;
+ 	    }
+	  if (terminal_type == TERMINAL_TYPE_ASCII && is_a_backspace(c))
+	    {
+	      return 0x7f;
+	    }
+	  return c;
+	}
+    }
+  if (terminal_chat_sysop_is_speaking)
+    {
+      terminal_chat_sysop_is_speaking=0;
+      terminal_send_eol();
+      terminal_send_eol();
+      terminal_send(username,0);
+      terminal_send(": ",0);
+    }
+  if ((terminal_type == TERMINAL_TYPE_ASCII) && (ansi_state_detect==0) && (c==0x1b))
+    {
+      ansi_state_detect=1;
+      while (ser_get(&c)==SER_ERR_NO_DATA) { }
+    }
+  else
+    ansi_state_detect=0;
+
+  if ((terminal_type == TERMINAL_TYPE_ASCII) && (ansi_state_detect==1) && (c==0x5b))
+    {
+      ansi_state_detect=2;
+      while (ser_get(&c)==SER_ERR_NO_DATA) { }
+    }
+  else
+    ansi_state_detect=0;
+
+  if (terminal_type == TERMINAL_TYPE_ASCII && ansi_state_detect==2 && (c==0x43))
+    {
+      ansi_state_detect=0;
+      c=0x1f;
+    }
+  else if (terminal_type == TERMINAL_TYPE_ASCII && ansi_state_detect==2 && (c==0x44))
+    {
+      ansi_state_detect=0;
+      c=0x1e;
+    }
+
+  return c;
+}
+
+void terminal_clear_chat()
+{
+  terminal_chat_sysop_is_speaking=0;
 }
 
 unsigned char terminal_get_and_echo(unsigned char i, unsigned char j, unsigned char size, unsigned char rubout)

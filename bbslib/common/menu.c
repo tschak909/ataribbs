@@ -24,6 +24,8 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <assert.h>
+#include <time.h>
+#include <conio.h>
 
 unsigned char mode=MODE_MAIN_MENU;
 MMUFile mmufd=0;
@@ -617,6 +619,68 @@ void _menu_user_list()
   free(record);
 }
 
+void _menu_chat_ui()
+{
+  unsigned char c=0;
+
+  terminal_send("^C exits chat.",0);
+  terminal_send_eol();
+  terminal_send_eol();
+
+  terminal_send("Hi. Can I help you?",0);
+  terminal_send_eol();
+  terminal_send_eol();
+
+  while (c!=0x03)
+    {
+      c=terminal_get_char_chat(user_get()->username);
+      if (c!=0xff)
+	{
+	  ser_put(c);
+	  putasciichar(c);
+	}
+    }
+  
+  terminal_send_eol();
+  terminal_send("Chat session ended.",0);
+  terminal_send_eol();
+
+  return;
+}
+
+void _menu_chat()
+{
+  clock_t b=0;
+  clock_t e=0;
+  clock_t d=0;
+  unsigned char willChat=0;
+  terminal_send("Paging SysOp...",0);
+  b = clock();
+  while ((d / CLOCKS_PER_SEC) < 30)
+    {
+      e = clock();
+      d = e-b;
+      if ((d / CLOCKS_PER_SEC) % 2)
+	{
+	  terminal_beep();
+	}
+
+      if (kbhit())
+	{
+	  willChat=1;
+	  break;
+	}
+    }
+
+  if (!willChat)
+    return;
+  else
+    _menu_chat_ui();
+
+  terminal_clear_chat();
+
+}
+
 unsigned char _menu_main(unsigned char c)
 {
   switch(toupper(c))
@@ -634,6 +698,11 @@ unsigned char _menu_main(unsigned char c)
     case 'U':
       _menu_confirm('U',"User List");
       _menu_user_list();
+      return 0;
+    case 'C':
+      _menu_confirm('C',"Chat with SysOp");
+      _menu_chat();
+      return 0;
     default:
       terminal_beep();
       return 0;
@@ -648,6 +717,7 @@ unsigned char _is_valid_char(unsigned char mode, unsigned char c)
     case MODE_MAIN_MENU:
       return (toupper(c)=='G' ||
 	      toupper(c)=='M' ||
+	      toupper(c)=='C' ||
 	      toupper(c)=='U');
       break;
     case MODE_MSG_MENU:

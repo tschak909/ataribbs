@@ -156,14 +156,14 @@ void _menu_msg_header_scan()
   sprintf(output,"Start Message (1-%lu) ",nummsgs);
   terminal_open_port();
   terminal_send(output,0);
-  s1 = prompt_line(1,5);
+  s1 = prompt_line(1,5,NULL);
   r1 = atol(s1);
   r1 = (r1 < nummsgs ? r1 : nummsgs);
 
   sprintf(output,"End Message (1-%lu)",nummsgs);
 
   terminal_send(output,0);
-  s2 = prompt_line(1,5);
+  s2 = prompt_line(1,5,NULL);
   r2 = atol(s2);
   r2 = (r2 < nummsgs ? r2 : nummsgs);
 
@@ -408,7 +408,7 @@ void _menu_enter_message_insert_into(char* line)
   while (line[0]!=0)
     {
       terminal_open_port();
-      line=prompt_line(1,36);
+      line=prompt_line(1,36,NULL);
       terminal_close_port();
       ledit_insert_at_end(line);
     }
@@ -442,7 +442,11 @@ void _menu_enter_message_insert()
 
 void _menu_enter_message_edit()
 {
-
+  int editLine=0;
+  terminal_send("Line # to edit: ",0);
+  editLine=atoi(prompt_line(1,5,NULL));
+  terminal_send_eol();
+  
 }
 
 void _menu_enter_message_read()
@@ -450,17 +454,25 @@ void _menu_enter_message_read()
   int i=2;
   char buf[50];
   char* line;
+  terminal_enable_line_counter();
+  terminal_close_port();
   sprintf(buf,"%3u:%s",1,ledit_get_first_line());
+  terminal_open_port();
   terminal_send(buf,0);
   terminal_send_eol();
+  terminal_close_port();
   while (line=ledit_get_next_line())
     {
       sprintf(buf,"%3u:%s",i,line);
+      terminal_open_port();
       terminal_send(buf,0);
       terminal_send_eol();
+      terminal_close_port();
       free(line);
       i++;
-    }  
+    }
+  terminal_open_port();
+  terminal_disable_line_counter();
 }
 
 void _menu_enter_message()
@@ -489,7 +501,7 @@ void _menu_enter_message()
   terminal_send_eol();
   terminal_send("Subject:",0);
   terminal_send_eol();
-  subject = prompt_line(1,32);
+  subject = prompt_line(1,32,NULL);
   
   terminal_send_eol();
   terminal_send("Enter your message, each line seperated by <RETURN>",0);

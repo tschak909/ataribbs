@@ -10,7 +10,7 @@
 
 extern unsigned char terminal_type; // from terminal.c
 
-char* input_line_and_echo(unsigned char rubout, unsigned char size)
+char* input_line_and_echo(unsigned char rubout, unsigned char size, char* existing_text)
 {
   unsigned char c=0;
   unsigned char i=0;
@@ -18,6 +18,13 @@ char* input_line_and_echo(unsigned char rubout, unsigned char size)
   unsigned char buf[64];
 
   buf[0]='\0';
+
+  if(existing_text!=NULL)
+    {
+      strcpy(buf,existing_text);
+      i=strlen(existing_text);
+      j=strlen(existing_text);
+    }
 
   while (is_a_return(c) == 0)
     {
@@ -100,7 +107,7 @@ char* input_line_and_echo_char(unsigned char e,unsigned char rubout, unsigned ch
   return strdup(buf);
 }
 
-char* prompt_line(unsigned char type, unsigned char size)
+char* prompt_line(unsigned char type, unsigned char size, char* existing_text)
 {
   char b,r,e,i;
   char prompt[66];
@@ -133,7 +140,12 @@ char* prompt_line(unsigned char type, unsigned char size)
       terminal_send_left();
     }
 
-  return input_line_and_echo(r,size);
+  if (existing_text!=NULL)
+    {
+      terminal_send(existing_text,0);
+    }
+
+  return input_line_and_echo(r,size,existing_text);
 
 }
 

@@ -345,6 +345,11 @@ void ledit_replace_line(int lineNo, const char* text)
   ledit_line_count++;  
 }
 
+int ledit_get_line_count()
+{
+  return ledit_node_count;
+}
+
 void ledit_init()
 {
   ledit_open_temp();

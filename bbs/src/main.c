@@ -68,11 +68,11 @@ unsigned char login(char* name)
       terminal_send_eol();
       terminal_send("Where are you calling from?",0);
       terminal_send_eol();
-      from = prompt_line(1,36);
+      from = prompt_line(1,36,NULL);
       terminal_send_eol();
       terminal_send("What is your email address?",0);
       terminal_send_eol();
-      email = prompt_line(1,36);
+      email = prompt_line(1,36,NULL);
       terminal_send_eol();
       passwordHash=0;
       passwordHashVerify=1;
@@ -169,7 +169,7 @@ void bbs()
     {
       terminal_send("Username: ",0);
       terminal_send_eol();
-      name = prompt_line(1,32);
+      name = prompt_line(1,32,NULL);
       terminal_send_eol();
       if (name[0] != 0)
   	break;

@@ -155,8 +155,10 @@ unsigned char login(char* name)
 void bbs()
 {
   char* name;
+  unsigned char retries=0;
 
   name[0]=0;
+  retries=0;
   printf("bbs()\n\n");
   log(LOG_LEVEL_NOTICE,"Connected!");
   terminal_determine_eol();
@@ -165,7 +167,7 @@ void bbs()
   terminal_send_screen("WELCOME");
   terminal_send_eol();
 
-  while (name[0] == 0)
+  while ((name[0] == 0) && retries < 3)
     {
       terminal_send("Username: ",0);
       terminal_send_eol();
@@ -177,7 +179,17 @@ void bbs()
   	{
   	  terminal_send_up();
   	  terminal_send_up();
-  	}
+	  terminal_send_up();
+	  retries++;
+	}
+    }
+
+  if (retries==3)
+    {
+      terminal_send_eol();
+      terminal_send_eol();
+      terminal_send_eol();
+      goto goodbye;
     }
 
   if (login(name) == 1)
@@ -190,7 +202,7 @@ void bbs()
 
   menu();
 
-  terminal_send("Thanks for calling... ",0);
+ goodbye:  terminal_send("Thanks for calling... ",0);
   terminal_send_eol();
   terminal_send("More will happen soon!",0);
   terminal_send_eol();

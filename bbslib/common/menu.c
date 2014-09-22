@@ -443,10 +443,14 @@ void _menu_enter_message_insert()
 void _menu_enter_message_edit()
 {
   int editLine=0;
+  char* line;
   terminal_send("Line # to edit: ",0);
   editLine=atoi(prompt_line(1,5,NULL));
   terminal_send_eol();
-  
+  line=ledit_get_line(editLine);
+  line=prompt_line(1,38,line);
+  ledit_replace_line(editLine,line);
+  free(line);
 }
 
 void _menu_enter_message_read()

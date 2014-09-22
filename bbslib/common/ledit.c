@@ -306,6 +306,29 @@ void ledit_debug()
 
 }
 
+char* ledit_get_line(int lineNo)
+{
+  LineEditNode* ptr = ledit_head->next;
+  int i=0;
+  char buf[40];
+  assert(lineNo<ledit_node_count);
+  while(ptr!=ledit_tail)
+    {
+      if (i==lineNo)
+	{
+	  ledit_read_line(ptr->lineNo,buf);
+	  return strdup(buf);
+	  break;
+	}
+      else
+	{
+	  ++i;
+	  ptr = ptr->next;
+	}
+    }
+  return NULL;
+}
+
 char* ledit_get_next_line()
 {
   char buf[40];

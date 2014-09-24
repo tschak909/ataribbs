@@ -188,7 +188,7 @@ void bbs()
     {
       terminal_send_eol();
       terminal_send_eol();
-      terminal_send_eol();
+      terminal_send_eol(); 
       goto goodbye;
     }
 

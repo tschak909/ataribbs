@@ -289,7 +289,6 @@ void ledit_read_line(int lineNo, char* buf)
 void ledit_debug()
 {
   LineEditNode* ptr = ledit_head->next;
-  char buf[40];
 
   if (ledit_head->next == ledit_tail)
     {
@@ -299,8 +298,7 @@ void ledit_debug()
 
   while(ptr!=ledit_tail)
     {
-      ledit_read_line(ptr->lineNo,buf);
-      printf("%5u %s\n",ptr->lineNo,buf);
+      printf("%5u\n",ptr->lineNo);
       ptr = ptr->next;
     }
 
@@ -363,8 +361,10 @@ void ledit_replace_line(int lineNo, const char* text)
       abort();
     }
 
-  ledit_delete_node(lineNo);
+  ledit_debug();
   ledit_insert_node(ledit_line_count,lineNo);
+  ledit_delete_node(lineNo+1); // Because Insert moved the lines down.
+  ledit_debug();
   ledit_line_count++;  
 }
 

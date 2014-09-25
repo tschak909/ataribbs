@@ -347,6 +347,26 @@ char* ledit_get_first_line()
   return ledit_get_next_line();
 }
 
+void ledit_replace_node(int oldLineNo, int newLineNo)
+{
+  LineEditNode* current_node;
+  int i=0;
+
+  current_node = ledit_head->next;
+
+  while (current_node!=ledit_tail)
+    {
+      if (current_node->lineNo==oldLineNo)
+	{
+	  current_node->lineNo=newLineNo;
+	  return;
+	}
+      current_node=current_node->next;
+    }
+  printf("Node not present.");
+  return;
+}
+
 void ledit_replace_line(int lineNo, const char* text)
 {
   assert(leditfd>0);
@@ -361,10 +381,7 @@ void ledit_replace_line(int lineNo, const char* text)
       abort();
     }
 
-  ledit_debug();
-  ledit_insert_node(ledit_line_count,lineNo);
-  ledit_delete_node(lineNo+1); // Because Insert moved the lines down.
-  ledit_debug();
+  ledit_replace_node(lineNo,ledit_line_count);
   ledit_line_count++;  
 }
 

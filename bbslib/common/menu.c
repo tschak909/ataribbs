@@ -398,10 +398,10 @@ void _menu_msg_board_read()
       _menu_confirm('Y',"Yours");
       break;
     }
-
+ 
 }
 
-void _menu_enter_message_insert_into(char* line)
+void _menu_enter_message_insert_into(char* line, int lineNo)
 {
   assert(line!=NULL);
   line[0]=1;
@@ -410,7 +410,14 @@ void _menu_enter_message_insert_into(char* line)
       terminal_open_port();
       line=prompt_line(1,36,NULL);
       terminal_close_port();
-      ledit_insert_at_end(line);
+      if (lineNo == 0)
+	{
+	  ledit_insert_at_end(line);
+	}
+      else
+	{
+	  ledit_insert_after_line(lineNo,line);
+	}
     }
 }
 
@@ -438,6 +445,13 @@ void _menu_enter_message_save(char* subject)
 
 void _menu_enter_message_insert()
 {
+  char* line;
+  int lineNo;
+  line=calloc(1,32);
+  terminal_send("Line # to insert after: ",0);
+  lineNo=atoi(prompt_line(1,5,NULL));
+  _menu_enter_message_insert_into(line,lineNo);
+  free(line);
 }
 
 void _menu_enter_message_edit()
@@ -447,7 +461,9 @@ void _menu_enter_message_edit()
   terminal_send("Line # to edit: ",0);
   editLine=atoi(prompt_line(1,5,NULL))-1;
   terminal_send_eol();
+  terminal_close_port();
   line=ledit_get_line(editLine);
+  terminal_open_port();
   line=prompt_line(1,38,line);
   ledit_replace_line(editLine,line);
   free(line);
@@ -514,7 +530,7 @@ void _menu_enter_message()
   terminal_send_eol();
   terminal_send_eol();
 
-  _menu_enter_message_insert_into(line);
+  _menu_enter_message_insert_into(line,0);
 
   terminal_close_port();
 
@@ -555,7 +571,7 @@ void _menu_enter_message()
 	case 0x0d:
 	case 'C':
 	  _menu_confirm('C',"Continue");
-	  _menu_enter_message_insert_into(line);
+	  _menu_enter_message_insert_into(line,0);
 	  c=255;
 	  break;
 	case 'S':

@@ -59,7 +59,7 @@ You will need:
 * Atari 8-bit computer, either real or emulated.
 * Atari 850 Interface (either real, or emulated)
 * MODEM or Terminal interface of some kind (e.g. Lantronix UDS-1100), (either real or emulated)
-* SpartaDOS 3.2 (X will work once i get some crap fixed)
+* SpartaDOS X. No. I will not support anything else. Don't ask. 
 * Big disk of some sort, either a large 65535 sector ATR, a hard disk, whatever. (If you're trying to get this to work on a single density 810, come here so I can thwap you.)
 
 More to come later.

@@ -13,7 +13,7 @@ TARGETS := atari
 
 # Name of the final, single-file executable.
 # Default: name of the current dir with target name appended
-PROGRAM := bbs
+PROGRAM := banktest
 
 # Path(s) to additional libraries required for linking the program
 # Use only if you don't want to place copies of the libraries in SRCDIR
@@ -208,7 +208,7 @@ TARGETLIST := $(subst $(COMMA),$(SPACE),$(TARGETS))
 ifeq ($(words $(TARGETLIST)),1)
 
 # Set PROGRAM to something like 'myprog.c64'.
-override PROGRAM := bbs.com 
+override PROGRAM := banktest.com 
 
 # Set SOURCES to something like 'src/foo.c src/bar.s'.
 # Use of assembler files with names ending differently than .s is deprecated!
